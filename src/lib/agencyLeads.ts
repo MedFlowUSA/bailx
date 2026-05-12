@@ -1,0 +1,184 @@
+import type { Agency, BailRequest } from "../types";
+import { getCurrentProfile } from "./auth";
+import { isSupabaseConfigured, supabase } from "./supabase";
+
+export type AgencyLead = BailRequest & {
+  match_reason: string;
+};
+
+export type AgencyLeadsResult =
+  | {
+      ok: true;
+      agency: Agency | null;
+      leads: AgencyLead[];
+      mocked: boolean;
+      message?: string;
+    }
+  | {
+      ok: false;
+      error: string;
+    };
+
+const mockAgency: Agency = {
+  id: "mock-approved-agency",
+  business_name: "North County Bail Services",
+  contact_name: "Dana Miller",
+  phone: "(555) 210-4410",
+  email: "leads@northcounty.example",
+  license_number: "CA-BAIL-77821",
+  service_counties: ["Los Angeles", "Orange"],
+  languages: ["English", "Spanish"],
+  collateral_accepted: ["Cash", "Vehicle title", "Property"],
+  verification_status: "approved",
+  subscription_tier: "professional",
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+};
+
+const mockLeads: AgencyLead[] = [
+  {
+    id: "mock-lead-1",
+    requester_name: "Jamie R.",
+    requester_phone: "(555) 210-0192",
+    requester_email: "jamie@example.com",
+    defendant_name: "Taylor R.",
+    jail_location: "Los Angeles County Jail",
+    jail_city: "Los Angeles",
+    jail_county: "Los Angeles",
+    jail_state: "CA",
+    jail_zip: "90012",
+    bond_amount: 25000,
+    charges: "Pending",
+    urgency_level: "urgent",
+    preferred_language: "English",
+    collateral_available: ["Cash", "Vehicle title"],
+    notes: "Family is ready to speak with providers.",
+    status: "submitted",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    match_reason: "County match: Los Angeles",
+  },
+];
+
+export async function getAgencyLeads(): Promise<AgencyLeadsResult> {
+  if (!isSupabaseConfigured || !supabase) {
+    return {
+      ok: true,
+      agency: mockAgency,
+      leads: mockLeads,
+      mocked: true,
+      message: "Showing mock leads until Supabase is configured.",
+    };
+  }
+
+  const profile = await getCurrentProfile();
+
+  let agencyQuery = supabase
+    .from("agencies")
+    .select("*")
+    .eq("verification_status", "approved")
+    .order("created_at", { ascending: true });
+
+  if (profile?.role === "agency") {
+    agencyQuery = agencyQuery.eq("owner_profile_id", profile.id);
+  }
+
+  const { data: agency, error: agencyError } = await agencyQuery.limit(1).maybeSingle();
+
+  if (agencyError) {
+    return {
+      ok: false,
+      error: agencyError.message || "Unable to load approved agency.",
+    };
+  }
+
+  if (!agency && profile?.role === "agency") {
+    // Temporary development fallback: until every agency account is linked to an
+    // agency row, use the first approved agency so the lead inbox remains testable.
+    const { data: fallbackAgency, error: fallbackError } = await supabase
+      .from("agencies")
+      .select("*")
+      .eq("verification_status", "approved")
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (fallbackError) {
+      return {
+        ok: false,
+        error: fallbackError.message || "Unable to load development fallback agency.",
+      };
+    }
+
+    if (fallbackAgency) {
+      return getLeadsForAgency(fallbackAgency as Agency, true);
+    }
+  }
+
+  if (!agency) {
+    return {
+      ok: true,
+      agency: null,
+      leads: [],
+      mocked: false,
+      message:
+        profile?.role === "agency"
+          ? "No approved agency is linked to your agency profile yet. Submit onboarding or wait for admin approval."
+          : "Approve an agency before the lead inbox can match requests.",
+    };
+  }
+
+  return getLeadsForAgency(agency as Agency, false);
+}
+
+async function getLeadsForAgency(
+  approvedAgency: Agency,
+  usedDevelopmentFallback: boolean,
+): Promise<AgencyLeadsResult> {
+  if (!supabase) {
+    return {
+      ok: false,
+      error: "Supabase is not configured.",
+    };
+  }
+
+  const counties = approvedAgency.service_counties || [];
+
+  if (counties.length === 0) {
+    return {
+      ok: true,
+      agency: approvedAgency,
+      leads: [],
+      mocked: false,
+      message: "This approved agency has no service counties yet.",
+    };
+  }
+
+  const { data: requests, error: requestsError } = await supabase
+    .from("bail_requests")
+    .select("*")
+    .in("jail_county", counties)
+    .eq("status", "submitted")
+    .order("created_at", { ascending: false })
+    .limit(50);
+
+  if (requestsError) {
+    return {
+      ok: false,
+      error: requestsError.message || "Unable to load eligible bail requests.",
+    };
+  }
+
+  return {
+    ok: true,
+    agency: approvedAgency,
+    leads: ((requests || []) as BailRequest[]).map((request) => ({
+      ...request,
+      match_reason: `County match: ${request.jail_county || "Not listed"}`,
+    })),
+    mocked: false,
+    message: usedDevelopmentFallback
+      ? "Using first approved agency as a temporary development fallback."
+      : undefined,
+  };
+}
