@@ -73,6 +73,9 @@ export function AgencyDashboardPage() {
 
   const approvedDocuments = documents.filter((document) => document.review_status === "approved").length;
   const pendingDocuments = documents.filter((document) => document.review_status === "pending").length;
+  const moreInfoDocuments = documents.filter(
+    (document) => document.review_status === "more_info_requested",
+  ).length;
   const selectedOffers = offers.filter((offer) => offer.status === "selected").length;
   const isApproved = agency?.verification_status === "approved";
 
@@ -159,11 +162,25 @@ export function AgencyDashboardPage() {
         <article className="card agency-command-card">
           <p className="eyebrow">Documents</p>
           <h2>Verification readiness</h2>
-          <p>
-            {documents.length > 0
-              ? `${approvedDocuments} approved, ${pendingDocuments} pending review.`
-              : "Upload license and verification documents after onboarding."}
-          </p>
+          <dl className="agency-detail-grid">
+            <div>
+              <dt>Documents uploaded</dt>
+              <dd>{documents.length}</dd>
+            </div>
+            <div>
+              <dt>Pending review</dt>
+              <dd>{pendingDocuments}</dd>
+            </div>
+            <div>
+              <dt>Approved documents</dt>
+              <dd>{approvedDocuments}</dd>
+            </div>
+            <div>
+              <dt>More info requested</dt>
+              <dd>{moreInfoDocuments}</dd>
+            </div>
+          </dl>
+          <p>Upload license and verification documents after onboarding.</p>
           <Link className="button secondary" to="/agency/onboarding">
             Manage Documents
           </Link>

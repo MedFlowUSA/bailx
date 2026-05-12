@@ -44,10 +44,12 @@ export async function createBailRequest(
   }
 
   const profile = await getCurrentProfile();
+  const requestId = crypto.randomUUID();
 
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("bail_requests")
     .insert({
+      id: requestId,
       consumer_profile_id: profile?.role === "consumer" ? profile.id : null,
       requester_name: input.requester_name,
       requester_phone: input.requester_phone,
@@ -65,9 +67,7 @@ export async function createBailRequest(
       collateral_available: input.collateral_available,
       notes: input.notes || null,
       status: "submitted",
-    })
-    .select("id")
-    .single();
+    });
 
   if (error) {
     return {
@@ -78,7 +78,7 @@ export async function createBailRequest(
 
   return {
     ok: true,
-    id: data.id as string,
+    id: requestId,
     mocked: false,
     message: "Emergency bail request submitted.",
   };

@@ -127,6 +127,10 @@ export function AdminAgencyDocumentsPage() {
                     <dt>Created</dt>
                     <dd>{new Date(document.created_at).toLocaleDateString()}</dd>
                   </div>
+                  <div>
+                    <dt>Admin notes</dt>
+                    <dd>{document.admin_notes || "No notes yet"}</dd>
+                  </div>
                 </dl>
               </div>
               <form className="admin-actions" onSubmit={(event) => event.preventDefault()}>

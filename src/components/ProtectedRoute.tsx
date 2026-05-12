@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate, Outlet } from "react-router-dom";
-import { getCurrentProfile, getCurrentUser, type UserRole } from "../lib/auth";
+import {
+  getCurrentProfile,
+  getCurrentUser,
+  getDashboardPathForRole,
+  type UserRole,
+} from "../lib/auth";
 import type { Profile } from "../types";
 
 type ProtectedRouteProps = {
@@ -64,7 +69,7 @@ export function ProtectedRoute({ roles }: ProtectedRouteProps) {
           <p className="eyebrow">Unauthorized</p>
           <h1>Access not available</h1>
           <p>This dashboard is not available for your current BailX account type.</p>
-          <Link className="button primary" to="/consumer/dashboard">
+          <Link className="button primary" to={getDashboardPathForRole(profile.role)}>
             Go to Dashboard
           </Link>
         </div>

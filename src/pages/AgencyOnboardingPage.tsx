@@ -1,6 +1,6 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { SubscriptionTierBadge } from "../components/SubscriptionTierBadge";
-import { createAgencyApplication } from "../lib/agencies";
+import { createAgencyApplication, getCurrentAgencyApplication } from "../lib/agencies";
 import {
   getAgencyDocumentsForAgency,
   uploadAgencyDocument,
@@ -34,6 +34,21 @@ export function AgencyOnboardingPage() {
       setDocuments(result.documents);
     }
   }
+
+  async function loadExistingAgency() {
+    const result = await getCurrentAgencyApplication();
+
+    if (!result.ok || !result.agency) {
+      return;
+    }
+
+    setSubmittedAgencyId(result.agency.id);
+    await loadDocuments(result.agency.id);
+  }
+
+  useEffect(() => {
+    void loadExistingAgency();
+  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -164,16 +179,24 @@ export function AgencyOnboardingPage() {
         </button>
       </form>
 
-      {submittedAgencyId ? (
-        <section className="card form-card">
-          <div>
-            <p className="eyebrow">Verification documents</p>
-            <h2>Upload agency documents</h2>
-            <p>
-              Add license and verification files for admin review. Documents are
-              stored in the private agency-documents bucket.
-            </p>
-          </div>
+      <section className="card form-card">
+        <div>
+          <p className="eyebrow">Verification documents</p>
+          <h2>Upload agency documents</h2>
+          <p>
+            Add license and verification files for admin review. Documents are
+            stored in the private agency-documents bucket.
+          </p>
+        </div>
+
+        {!submittedAgencyId ? (
+          <p className="form-message">
+            Submit your agency application first. Once the application is created,
+            this section will accept license, registration, insurance, and other
+            verification documents.
+          </p>
+        ) : (
+          <>
           <form className="form-grid" onSubmit={handleDocumentUpload}>
             <label>
               Document type
@@ -210,8 +233,9 @@ export function AgencyOnboardingPage() {
           ) : (
             <p>No documents uploaded yet.</p>
           )}
-        </section>
-      ) : null}
+          </>
+        )}
+      </section>
     </section>
   );
 }

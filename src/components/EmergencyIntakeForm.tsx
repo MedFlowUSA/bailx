@@ -124,10 +124,6 @@ export function EmergencyIntakeForm() {
         Notes
         <textarea name="notes" placeholder="Anything providers should know now" />
       </label>
-      <label className="upload-placeholder">
-        Document upload placeholder
-        <input name="documents" type="file" />
-      </label>
       {successMessage ? <p className="form-message success">{successMessage}</p> : null}
       {errorMessage ? <p className="form-message error">{errorMessage}</p> : null}
       <button className="button primary" type="submit" disabled={isSubmitting}>

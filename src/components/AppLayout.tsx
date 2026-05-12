@@ -56,6 +56,9 @@ export function AppLayout() {
           {profile ? (
             <>
               <NavLink to={getDashboardPathForRole(profile.role)}>Dashboard</NavLink>
+              {profile.role === "admin" ? (
+                <NavLink to="/admin/agency-documents">Agency Documents</NavLink>
+              ) : null}
               <NavLink to="/auth/sign-out">Sign Out</NavLink>
             </>
           ) : (

@@ -13,8 +13,8 @@ and emergency legal service resources.
    numeric order.
 4. Start the app with `npm run dev`.
 
-Current RLS includes temporary development policies for anonymous emergency
-intake and authenticated QA. Tighten policies before production.
+Current RLS uses role and ownership policies from the final lockdown migrations.
+Anonymous emergency intake remains public for insert-only request submission.
 
 ## Admin Provisioning Note
 
@@ -106,9 +106,8 @@ be verified in the Supabase dashboard after migration.
 6. Use Approve, Reject, or Request More Info and confirm the row status changes
    in Supabase.
 
-Agency onboarding and admin review currently use development-only anonymous RLS
-policies. Replace them with authenticated provider/admin policies before
-production.
+Agency onboarding and admin review use authenticated provider/admin policies.
+Verify the latest migrations are applied before production traffic.
 
 ## Provider Selection Test
 
@@ -139,15 +138,16 @@ competing offer decline, and request status update happen atomically.
 
 ## Agency Document Upload Test
 
-1. Sign in as an agency.
-2. Submit `/agency/onboarding`.
-3. After the application is created, upload a bail license document.
-4. Confirm the file appears in the private Supabase Storage bucket
+1. Create or verify a private Supabase Storage bucket named `agency-documents`.
+2. Sign in as an agency.
+3. Submit `/agency/onboarding`.
+4. After the application is created, upload a bail license document.
+5. Confirm the file appears in the private Supabase Storage bucket
    `agency-documents`.
-5. Confirm metadata appears in `agency_documents`.
-6. Sign in as an admin.
-7. Open `/admin/agency-documents`.
-8. Approve, reject, or request more information and confirm
+6. Confirm metadata appears in `agency_documents`.
+7. Sign in as an admin.
+8. Open `/admin/agency-documents`.
+9. Approve, reject, or request more information and confirm
    `agency_documents.review_status` updates.
 
 ## Customer Portal Test
