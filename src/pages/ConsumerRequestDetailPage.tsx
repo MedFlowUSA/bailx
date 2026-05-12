@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { AgencyOfferCard } from "../components/AgencyOfferCard";
+import { CustomerNextSteps } from "../components/CustomerNextSteps";
+import { ProviderQuestions } from "../components/ProviderQuestions";
 import { RequestStatusTimeline } from "../components/RequestStatusTimeline";
+import { SelectedProviderPanel } from "../components/SelectedProviderPanel";
 import { getOffersForBailRequest, selectAgencyOffer } from "../lib/agencyOffers";
 import { getBailRequestById } from "../lib/consumerRequests";
 import { getRequestStatusLabel } from "../lib/requestStatus";
@@ -102,7 +105,10 @@ export function ConsumerRequestDetailPage() {
       <div className="page-heading-row">
         <div>
           <p className="eyebrow">Consumer request</p>
-          <h1>Compare Agency Offers</h1>
+          <h1>Request Command Center</h1>
+          <p>
+            Review each offer carefully and confirm all terms directly with the provider.
+          </p>
         </div>
         <Link className="button secondary" to="/consumer/dashboard">
           Back to Requests
@@ -129,37 +135,112 @@ export function ConsumerRequestDetailPage() {
         <p>No request found.</p>
       ) : null}
 
-      <p className="compliance-note">
-        BailX does not guarantee pricing, approval, release timing, or service
-        outcomes. Consumers should confirm all terms directly with the licensed provider.
-      </p>
-
-      {bailRequest ? <RequestStatusTimeline status={bailRequest.status} /> : null}
+      {selectedOffer ? <SelectedProviderPanel offer={selectedOffer} /> : null}
 
       {bailRequest ? (
-        <section className="card activity-log">
-          <p className="eyebrow">Activity</p>
-          <h2>Request timeline</h2>
-          <ul>
-            <li>Request submitted {new Date(bailRequest.created_at).toLocaleDateString()}</li>
-            {offers.length > 0 ? <li>Offer received from licensed provider</li> : null}
-            {selectedOffer ? <li>Provider selected</li> : null}
-          </ul>
+        <section className="section-grid customer-detail-grid">
+          <article className="card">
+            <p className="eyebrow">Request overview</p>
+            <h2>Current status</h2>
+            <RequestStatusTimeline status={bailRequest.status} />
+          </article>
+          <article className="card">
+            <p className="eyebrow">Defendant and jail</p>
+            <h2>{bailRequest.defendant_name || "Defendant not listed"}</h2>
+            <dl className="agency-detail-grid">
+              <div>
+                <dt>Jail</dt>
+                <dd>{bailRequest.jail_location || "Not listed"}</dd>
+              </div>
+              <div>
+                <dt>County</dt>
+                <dd>{bailRequest.jail_county || "Not listed"}</dd>
+              </div>
+              <div>
+                <dt>City / State</dt>
+                <dd>
+                  {[bailRequest.jail_city, bailRequest.jail_state].filter(Boolean).join(", ") ||
+                    "Not listed"}
+                </dd>
+              </div>
+              <div>
+                <dt>Language</dt>
+                <dd>{bailRequest.preferred_language || "Not listed"}</dd>
+              </div>
+            </dl>
+          </article>
+          <article className="card">
+            <p className="eyebrow">Bail and bond</p>
+            <h2>{formatMoney(bailRequest.bond_amount)}</h2>
+            <dl className="agency-detail-grid">
+              <div>
+                <dt>Charges</dt>
+                <dd>{bailRequest.charges || "Not listed"}</dd>
+              </div>
+              <div>
+                <dt>Collateral available</dt>
+                <dd>{bailRequest.collateral_available?.join(", ") || "Not listed"}</dd>
+              </div>
+              <div>
+                <dt>Urgency</dt>
+                <dd>{bailRequest.urgency_level}</dd>
+              </div>
+              <div>
+                <dt>Submitted</dt>
+                <dd>{new Date(bailRequest.created_at).toLocaleDateString()}</dd>
+              </div>
+            </dl>
+          </article>
+          <article className="card activity-log">
+            <p className="eyebrow">Activity</p>
+            <h2>Request timeline</h2>
+            <ul>
+              <li>Your request has been submitted.</li>
+              <li>Approved providers may review your request and submit offers.</li>
+              {offers.length > 0 ? <li>Offers are available for review.</li> : null}
+              {selectedOffer ? <li>Provider selected. Contact them directly for next steps.</li> : null}
+            </ul>
+          </article>
         </section>
       ) : null}
 
-      <div className="offer-comparison-grid">
-        {!isLoading && offers.length === 0 ? <p>No offers have been submitted yet.</p> : null}
-        {offers.map((offer) => (
-          <AgencyOfferCard
-            key={offer.id}
-            offer={offer}
-            disabled={Boolean(selectedOffer)}
-            isSelecting={selectingOfferId === offer.id}
-            onSelect={handleSelectOffer}
-          />
-        ))}
-      </div>
+      {bailRequest ? (
+        <section className="card">
+          <p className="eyebrow">Agency offers</p>
+          <h2>Compare provider responses</h2>
+          <p>
+            BailX does not issue bonds or guarantee release outcomes. Confirm
+            pricing, collateral, documents, and timing directly with each provider.
+          </p>
+          <div className="offer-comparison-grid">
+            {!isLoading && offers.length === 0 ? (
+              <p>No offers have been submitted yet.</p>
+            ) : null}
+            {offers.map((offer) => (
+              <AgencyOfferCard
+                key={offer.id}
+                offer={offer}
+                disabled={Boolean(selectedOffer)}
+                isSelecting={selectingOfferId === offer.id}
+                onSelect={handleSelectOffer}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {bailRequest ? (
+        <div className="section-grid customer-guidance-grid">
+          <CustomerNextSteps />
+          <ProviderQuestions />
+        </div>
+      ) : null}
+
+      <p className="compliance-note">
+        BailX is a technology marketplace and advertising platform. BailX does not
+        provide legal advice, issue bail bonds, set provider terms, or guarantee
+        release outcomes.
+      </p>
     </section>
   );
 }

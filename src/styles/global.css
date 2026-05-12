@@ -601,11 +601,28 @@ h2 {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.lead-meta strong {
+  color: #071426;
+  font-size: 1.25rem;
 }
 
 .lead-actions {
   display: flex;
   justify-content: flex-end;
+}
+
+.card-subsection {
+  border: 1px solid #e7edf4;
+  border-radius: 8px;
+  padding: 0.9rem;
+  background: #f8fbff;
+}
+
+.card-subsection p {
+  margin: 0.25rem 0 0;
 }
 
 .offer-form {
@@ -629,6 +646,184 @@ h2 {
 .selected-offer {
   border: 2px solid #0b84ff;
   box-shadow: 0 0 0 4px rgba(11, 132, 255, 0.14);
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.summary-card {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.summary-card span,
+.offer-highlight-row span {
+  color: #64748b;
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.summary-card strong {
+  color: #0b4f9f;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.admin-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.admin-metric-card {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.admin-metric-card span {
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.admin-metric-card strong {
+  color: #071426;
+  font-size: 1.9rem;
+  line-height: 1;
+}
+
+.admin-metric-card p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.88rem;
+}
+
+.admin-ops-grid,
+.admin-card-list,
+.compact-admin-list,
+.admin-compliance-card,
+.admin-request-card {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-ops-grid {
+  margin-top: 1rem;
+}
+
+.admin-compact-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid #e7edf4;
+  border-radius: 8px;
+  padding: 0.85rem;
+  color: inherit;
+  text-decoration: none;
+  background: #f8fbff;
+}
+
+.admin-compact-row span:first-child {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.admin-compact-row small {
+  color: #64748b;
+}
+
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.filter-button {
+  border: 1px solid #d7e0ec;
+  border-radius: 999px;
+  padding: 0.55rem 0.85rem;
+  background: #ffffff;
+  color: #314054;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.filter-button.active {
+  border-color: #0b84ff;
+  background: #e9f3ff;
+  color: #0b4f9f;
+}
+
+.empty-state-card,
+.request-portal-card,
+.selected-provider-panel,
+.guidance-card,
+.agency-command-card,
+.admin-list-card {
+  display: grid;
+  gap: 1rem;
+}
+
+.request-card-header,
+.offer-highlight-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.offer-highlight-row {
+  border: 1px solid #d7e0ec;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #f8fbff;
+}
+
+.offer-highlight-row div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.offer-highlight-row strong {
+  color: #071426;
+  font-size: 1.2rem;
+}
+
+.customer-detail-grid,
+.customer-guidance-grid {
+  margin-top: 1rem;
+}
+
+.selected-provider-panel {
+  margin: 1rem 0;
+  border: 2px solid #0b84ff;
+}
+
+.checklist,
+.question-list {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #314054;
+}
+
+.checklist li::marker {
+  color: #0b84ff;
+}
+
+.question-list li::marker {
+  color: #ff6b35;
 }
 
 .provider-contact,
@@ -781,7 +976,8 @@ h2 {
   }
 
   .section-grid,
-  .dashboard-grid {
+  .dashboard-grid,
+  .admin-ops-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -815,6 +1011,11 @@ h2 {
   .hero-actions,
   .admin-actions {
     align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-compact-row {
+    align-items: flex-start;
     flex-direction: column;
   }
 

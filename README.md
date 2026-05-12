@@ -150,6 +150,49 @@ competing offer decline, and request status update happen atomically.
 8. Approve, reject, or request more information and confirm
    `agency_documents.review_status` updates.
 
+## Customer Portal Test
+
+1. Sign in as a consumer.
+2. Submit a request from `/get-help-now`.
+3. Have an approved agency submit an offer from `/agency/leads`.
+4. Return to `/consumer/dashboard`.
+5. Confirm the dashboard summary cards and offer count appear.
+6. Open the request detail page.
+7. Confirm request overview, defendant/jail info, bond info, timeline, agency
+   offers, next steps, and provider questions render.
+8. Select a provider and confirm the selected provider panel appears with contact
+   actions.
+
+## Agency Portal Test
+
+1. Sign in as an agency.
+2. Open `/agency/dashboard`.
+3. Confirm agency status, document status, lead count, offers submitted, and CTAs
+   render.
+4. Complete onboarding and upload documents if the agency has no linked profile.
+5. As admin, approve the agency.
+6. Return to `/agency/leads`.
+7. Confirm eligible lead cards show county match, jail, bond, requester context,
+   collateral, notes, and offer submission guidance.
+8. Submit an offer and confirm the lead card shows the submitted state.
+
+## Admin Portal QA
+
+1. Sign in as an admin.
+2. Open `/admin/dashboard` and confirm request, offer, provider selection, agency,
+   and review-placeholder metrics render.
+3. Confirm recent bail requests, pending agencies, recent provider selections, and
+   the admin compliance checklist render.
+4. Open `/admin/agencies`, filter by pending, approved, more info requested, and
+   rejected.
+5. Review a pending agency, then approve it after manual license and document
+   verification.
+6. Open `/admin/bail-requests`, review a request card, and confirm requester,
+   defendant, jail, bond, urgency, status, offer count, selected provider status,
+   and created date render.
+7. Test bail request filters for all, submitted, offers received, provider
+   selected, and closed.
+
 ## Status Timeline Test
 
 1. Submit a request from `/get-help-now`.

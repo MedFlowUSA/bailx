@@ -43,6 +43,18 @@ export type PendingAgenciesResult =
       error: string;
     };
 
+export type CurrentAgencyResult =
+  | {
+      ok: true;
+      agency: Agency | null;
+      mocked: boolean;
+      message?: string;
+    }
+  | {
+      ok: false;
+      error: string;
+    };
+
 const mockAgencies: Agency[] = [
   {
     id: "mock-agency-1",
@@ -148,6 +160,49 @@ export async function getPendingAgencies(): Promise<PendingAgenciesResult> {
   return {
     ok: true,
     agencies: (data || []) as Agency[],
+    mocked: false,
+  };
+}
+
+export async function getCurrentAgencyApplication(): Promise<CurrentAgencyResult> {
+  if (!isSupabaseConfigured || !supabase) {
+    return {
+      ok: true,
+      agency: mockAgencies[0] || null,
+      mocked: true,
+      message: "Showing mock agency profile until Supabase is configured.",
+    };
+  }
+
+  const profile = await getCurrentProfile();
+
+  if (profile?.role !== "agency") {
+    return {
+      ok: true,
+      agency: null,
+      mocked: false,
+      message: "Sign in with an agency account to view provider status.",
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("agencies")
+    .select("*")
+    .eq("owner_profile_id", profile.id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    return {
+      ok: false,
+      error: error.message || "Unable to load agency profile.",
+    };
+  }
+
+  return {
+    ok: true,
+    agency: data as Agency | null,
     mocked: false,
   };
 }

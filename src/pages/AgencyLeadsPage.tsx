@@ -103,12 +103,16 @@ export function AgencyLeadsPage() {
       </div>
 
       {agency ? (
-        <article className="card">
+        <article className="card agency-command-card">
           <p className="eyebrow">Approved agency</p>
           <h2>{agency.business_name}</h2>
           <p>
             Counties: {agency.service_counties?.join(", ") || "Not listed"} | Languages:{" "}
             {agency.languages?.join(", ") || "Not listed"}
+          </p>
+          <p className="compliance-note">
+            Submit offers only when your agency can responsibly follow up with the
+            requester and confirm final terms directly.
           </p>
         </article>
       ) : null}
@@ -117,25 +121,50 @@ export function AgencyLeadsPage() {
         {isLoading ? <p>Loading eligible leads...</p> : null}
         {statusMessage ? <p className="form-message success">{statusMessage}</p> : null}
         {errorMessage ? <p className="form-message error">{errorMessage}</p> : null}
-        {!isLoading && leads.length === 0 ? <p>No eligible leads found.</p> : null}
+        {!isLoading && leads.length === 0 ? (
+          <article className="card empty-state-card">
+            <h2>No eligible leads found</h2>
+            <p>
+              Leads appear after your agency is approved and a request matches one
+              of your service counties.
+            </p>
+          </article>
+        ) : null}
 
         {leads.map((lead) => (
           <article className="card lead-card" key={lead.id}>
-            <div>
-              <p className="eyebrow">{lead.match_reason}</p>
-              <h2>{lead.defendant_name || "Defendant not listed"}</h2>
-              <p>
-                {lead.jail_location || "Jail not listed"} | {lead.jail_county || "County not listed"}
-              </p>
+            <div className="request-card-header">
+              <div>
+                <p className="eyebrow">{lead.match_reason}</p>
+                <h2>{lead.defendant_name || "Defendant not listed"}</h2>
+                <p>
+                  {lead.jail_location || "Jail not listed"} |{" "}
+                  {lead.jail_county || "County not listed"}
+                </p>
+              </div>
+              <div className="lead-meta">
+                <span className="status-pill urgent">{lead.urgency_level}</span>
+                <strong>{formatMoney(lead.bond_amount)}</strong>
+              </div>
             </div>
-            <div className="lead-meta">
-              <span className="status-pill urgent">{lead.urgency_level}</span>
-              <strong>{formatMoney(lead.bond_amount)}</strong>
+            <div className="offer-highlight-row">
+              <div>
+                <span>County match</span>
+                <strong>{lead.jail_county || "Not listed"}</strong>
+              </div>
+              <div>
+                <span>Bond amount</span>
+                <strong>{formatMoney(lead.bond_amount)}</strong>
+              </div>
             </div>
             <dl className="agency-detail-grid">
               <div>
                 <dt>Requester</dt>
                 <dd>{lead.requester_name}</dd>
+              </div>
+              <div>
+                <dt>Requester contact</dt>
+                <dd>{lead.requester_phone || lead.requester_email || "Not listed"}</dd>
               </div>
               <div>
                 <dt>Language</dt>
@@ -146,11 +175,25 @@ export function AgencyLeadsPage() {
                 <dd>{lead.collateral_available?.join(", ") || "Not listed"}</dd>
               </div>
               <div>
+                <dt>Charges</dt>
+                <dd>{lead.charges || "Not listed"}</dd>
+              </div>
+              <div>
                 <dt>Status</dt>
                 <dd>{lead.status}</dd>
               </div>
             </dl>
+            {lead.notes ? (
+              <div className="card-subsection">
+                <strong>Requester notes</strong>
+                <p>{lead.notes}</p>
+              </div>
+            ) : null}
             <RequestStatusTimeline status={lead.status} compact />
+            <p className="compliance-note">
+              Include only terms your licensed agency can discuss directly with the
+              requester. BailX does not issue bonds or guarantee release timing.
+            </p>
             <div className="lead-actions">
               <button
                 className="button primary"

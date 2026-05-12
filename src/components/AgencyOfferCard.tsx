@@ -50,6 +50,7 @@ export function AgencyOfferCard(props: AgencyOfferCardProps) {
   const agencyPhone = offer.agencies?.phone;
   const agencyEmail = offer.agencies?.email;
   const isSelected = offer.status === "selected";
+  const showProviderContact = Boolean(isSelected && (agencyPhone || agencyEmail));
   const canSelect = Boolean(props.onSelect) && !props.disabled && !isSelected;
 
   async function copyContactInfo() {
@@ -69,9 +70,19 @@ export function AgencyOfferCard(props: AgencyOfferCardProps) {
   return (
     <article className={`card comparison-offer-card${isSelected ? " selected-offer" : ""}`}>
       <div>
-        <p className="eyebrow">{offer.status}</p>
+        <p className="eyebrow">{isSelected ? "Selected provider" : offer.status}</p>
         <h3>{agencyName}</h3>
         <p>{offer.message || "Provider did not add a message yet."}</p>
+      </div>
+      <div className="offer-highlight-row">
+        <div>
+          <span>Down payment</span>
+          <strong>{formatMoney(offer.down_payment)}</strong>
+        </div>
+        <div>
+          <span>Estimated release</span>
+          <strong>{offer.estimated_release_time || "Confirm timing"}</strong>
+        </div>
       </div>
       <dl className="agency-detail-grid">
         <div>
@@ -84,34 +95,34 @@ export function AgencyOfferCard(props: AgencyOfferCardProps) {
         </div>
         <div>
           <dt>Financing</dt>
-          <dd>{offer.financing_available ? "Available" : "Not listed"}</dd>
+          <dd>{offer.financing_available ? "Financing available" : "Confirm with provider"}</dd>
         </div>
         <div>
           <dt>Collateral</dt>
           <dd>{offer.collateral_notes || "Confirm with provider"}</dd>
         </div>
       </dl>
-      {agencyPhone || agencyEmail ? (
+      {showProviderContact ? (
         <div className="provider-contact">
           {agencyPhone ? <a href={`tel:${agencyPhone}`}>Call: {agencyPhone}</a> : null}
           {agencyEmail ? <a href={`mailto:${agencyEmail}`}>Email: {agencyEmail}</a> : null}
         </div>
       ) : null}
       <p className="compliance-note">
-        Selection through BailX does not guarantee release, approval, pricing, or timing.
+        Review this offer carefully and confirm all terms directly with the provider.
       </p>
       <div className="offer-actions">
-        {agencyPhone ? (
+        {showProviderContact && agencyPhone ? (
           <a className="button secondary" href={`tel:${agencyPhone}`}>
             Call Provider
           </a>
         ) : null}
-        {agencyEmail ? (
+        {showProviderContact && agencyEmail ? (
           <a className="button secondary" href={`mailto:${agencyEmail}`}>
             Email Provider
           </a>
         ) : null}
-        {agencyPhone || agencyEmail ? (
+        {showProviderContact ? (
           <button className="button secondary" type="button" onClick={copyContactInfo}>
             Copy Contact Info
           </button>
