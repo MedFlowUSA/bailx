@@ -13,6 +13,8 @@ import { ConsumerDashboardPage } from "../pages/ConsumerDashboardPage";
 import { ConsumerRequestDetailPage } from "../pages/ConsumerRequestDetailPage";
 import { GetHelpNowPage } from "../pages/GetHelpNowPage";
 import { LandingPage } from "../pages/LandingPage";
+import { NotFoundPage } from "../pages/NotFoundPage";
+import { RouteErrorPage } from "../pages/RouteErrorPage";
 import { SignInPage } from "../pages/SignInPage";
 import { SignOutPage } from "../pages/SignOutPage";
 import { SignUpPage } from "../pages/SignUpPage";
@@ -20,6 +22,7 @@ import { SignUpPage } from "../pages/SignUpPage";
 export const router = createBrowserRouter([
   {
     element: <AppLayout />,
+    errorElement: <RouteErrorPage />,
     children: [
       { path: "/", element: <LandingPage /> },
       { path: "/get-help-now", element: <GetHelpNowPage /> },
@@ -52,6 +55,7 @@ export const router = createBrowserRouter([
           { path: "/admin/bail-requests", element: <AdminBailRequestsPage /> },
         ],
       },
+      { path: "*", element: <NotFoundPage /> },
     ],
   },
 ]);
