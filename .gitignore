@@ -6,3 +6,5 @@ dist/
 *.tsbuildinfo
 dev-server*.log
 supabase/.temp/
+
+.vercel
