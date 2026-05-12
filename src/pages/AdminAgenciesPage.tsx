@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { AdminVerificationPanel } from "../components/AdminVerificationPanel";
 import {
   AgencyVerificationStatus,
@@ -68,6 +69,9 @@ export function AdminAgenciesPage() {
             <button className="button secondary" type="button" onClick={loadAgencies}>
               Refresh
             </button>
+            <Link className="button secondary" to="/admin/agency-documents">
+              Review Documents
+            </Link>
           </div>
 
           {isLoading ? <p>Loading pending agencies...</p> : null}

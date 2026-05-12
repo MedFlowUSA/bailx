@@ -8,9 +8,13 @@ type RoleSelectorProps = {
 const roles: Array<{ value: UserRole; label: string; description: string }> = [
   { value: "consumer", label: "Consumer", description: "Request help and compare offers." },
   { value: "agency", label: "Agency", description: "Apply and manage provider leads." },
-  { value: "admin", label: "Admin", description: "Review requests and providers." },
   { value: "attorney", label: "Attorney", description: "Advertising tools coming soon." },
 ];
+
+// Admin accounts are not available through public sign-up. During development,
+// provision an admin by creating a normal user and manually setting
+// profiles.role = 'admin' in Supabase. Production should use a secure
+// server-side admin provisioning flow.
 
 export function RoleSelector({ value, onChange }: RoleSelectorProps) {
   return (

@@ -93,8 +93,8 @@ export function AgencyLeadsPage() {
           <p className="eyebrow">Agency leads</p>
           <h1>Eligible Bail Requests</h1>
           <p>
-            Development matching uses the first approved agency and compares its
-            service counties to request jail county.
+            Matching uses your linked approved agency and compares its service
+            counties to each request jail county.
           </p>
         </div>
         <button className="button secondary" type="button" onClick={loadLeads}>

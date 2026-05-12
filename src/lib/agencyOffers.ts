@@ -1,4 +1,5 @@
 import type { AgencyOffer } from "../types";
+import { getCurrentProfile } from "./auth";
 import { updateMockConsumerRequestStatus } from "./consumerRequests";
 import { isSupabaseConfigured, supabase } from "./supabase";
 
@@ -60,9 +61,47 @@ const mockOffers: AgencyOffer[] = [];
 export async function createAgencyOffer(
   input: CreateAgencyOfferInput,
 ): Promise<AgencyOfferResult> {
+  let agencyId = input.agency_id;
+
+  if (isSupabaseConfigured && supabase) {
+    const profile = await getCurrentProfile();
+
+    if (profile?.role !== "agency") {
+      return {
+        ok: false,
+        error: "Only linked agency accounts can submit offers.",
+      };
+    }
+
+    const { data: linkedAgency, error: agencyError } = await supabase
+      .from("agencies")
+      .select("id")
+      .eq("owner_profile_id", profile.id)
+      .eq("verification_status", "approved")
+      .limit(1)
+      .maybeSingle();
+
+    if (agencyError) {
+      return {
+        ok: false,
+        error: agencyError.message || "Unable to verify linked agency.",
+      };
+    }
+
+    if (!linkedAgency?.id) {
+      return {
+        ok: false,
+        error:
+          "Your agency profile is not approved or linked yet. Please complete onboarding or contact BailX support.",
+      };
+    }
+
+    agencyId = String(linkedAgency.id);
+  }
+
   const payload = {
     bail_request_id: input.bail_request_id,
-    agency_id: input.agency_id,
+    agency_id: agencyId,
     down_payment: input.down_payment,
     estimated_release_time: input.estimated_release_time,
     financing_available: input.financing_available,
@@ -112,8 +151,10 @@ export async function createAgencyOffer(
 
   if (statusError) {
     return {
-      ok: false,
-      error: statusError.message || "Offer submitted, but request status was not updated.",
+      ok: true,
+      id: data.id as string,
+      mocked: false,
+      message: "Offer submitted. Request status will update after consumer review.",
     };
   }
 
@@ -293,47 +334,20 @@ export async function selectAgencyOffer(
     };
   }
 
-  const { error: selectError } = await supabase
-    .from("agency_offers")
-    .update({ status: "selected" })
-    .eq("id", offerId)
-    .eq("bail_request_id", bailRequestId);
+  const { data, error } = await supabase.rpc("select_provider_offer", {
+    p_offer_id: offerId,
+  });
 
-  if (selectError) {
+  if (error) {
     return {
       ok: false,
-      error: selectError.message || "Unable to select provider.",
-    };
-  }
-
-  const { error: declineError } = await supabase
-    .from("agency_offers")
-    .update({ status: "declined" })
-    .eq("bail_request_id", bailRequestId)
-    .neq("id", offerId);
-
-  if (declineError) {
-    return {
-      ok: false,
-      error: declineError.message || "Provider selected, but competing offers were not updated.",
-    };
-  }
-
-  const { error: requestError } = await supabase
-    .from("bail_requests")
-    .update({ status: "provider_selected" })
-    .eq("id", bailRequestId);
-
-  if (requestError) {
-    return {
-      ok: false,
-      error: requestError.message || "Provider selected, but request status was not updated.",
+      error: error.message || "Unable to select provider.",
     };
   }
 
   return {
     ok: true,
-    id: offerId,
+    id: String((data as { offer_id?: string } | null)?.offer_id || offerId),
     mocked: false,
     message: "Provider selected. Please confirm all terms directly with the licensed bail provider.",
   };

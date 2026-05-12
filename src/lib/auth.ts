@@ -114,6 +114,15 @@ export async function signUp(input: {
   password: string;
   role: UserRole;
 }): Promise<AuthResult> {
+  // Admin accounts must be manually provisioned in Supabase during development
+  // or created later through a secure server-side admin process.
+  if (input.role === "admin") {
+    return {
+      ok: false,
+      error: "Admin accounts cannot be created through public sign-up.",
+    };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     return {
       ok: true,

@@ -1,4 +1,5 @@
 import type { BailRequest } from "../types";
+import { getCurrentProfile } from "./auth";
 import { isSupabaseConfigured, supabase } from "./supabase";
 
 export type BailRequestResult =
@@ -65,9 +66,22 @@ export async function getRecentConsumerBailRequests(): Promise<RecentBailRequest
     };
   }
 
+  const profile = await getCurrentProfile();
+
+  // Anonymous users can submit emergency requests, but tracking a request
+  // dashboard requires signing in as the linked consumer profile.
+  if (profile?.role !== "consumer") {
+    return {
+      ok: true,
+      bailRequests: [],
+      mocked: false,
+    };
+  }
+
   const { data, error } = await supabase
     .from("bail_requests")
     .select("*")
+    .eq("consumer_profile_id", profile.id)
     .order("created_at", { ascending: false })
     .limit(12);
 
@@ -94,11 +108,26 @@ export async function getBailRequestById(id: string): Promise<BailRequestResult>
     };
   }
 
-  const { data, error } = await supabase
+  const profile = await getCurrentProfile();
+
+  if (!profile || !["consumer", "admin"].includes(profile.role)) {
+    return {
+      ok: true,
+      bailRequest: null,
+      mocked: false,
+    };
+  }
+
+  let query = supabase
     .from("bail_requests")
     .select("*")
-    .eq("id", id)
-    .maybeSingle();
+    .eq("id", id);
+
+  if (profile.role === "consumer") {
+    query = query.eq("consumer_profile_id", profile.id);
+  }
+
+  const { data, error } = await query.maybeSingle();
 
   if (error) {
     return {

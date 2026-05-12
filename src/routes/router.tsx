@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import { AppLayout } from "../components/AppLayout";
 import { AdminAgenciesPage } from "../pages/AdminAgenciesPage";
+import { AdminAgencyDocumentsPage } from "../pages/AdminAgencyDocumentsPage";
 import { AdminBailRequestsPage } from "../pages/AdminBailRequestsPage";
 import { AdminDashboardPage } from "../pages/AdminDashboardPage";
 import { AttorneysPage } from "../pages/AttorneysPage";
@@ -26,8 +27,14 @@ export const router = createBrowserRouter([
       { path: "/auth/sign-in", element: <SignInPage /> },
       { path: "/auth/sign-up", element: <SignUpPage /> },
       { path: "/auth/sign-out", element: <SignOutPage /> },
-      { path: "/consumer/dashboard", element: <ConsumerDashboardPage /> },
-      { path: "/consumer/requests/:id", element: <ConsumerRequestDetailPage /> },
+      {
+        element: <ProtectedRoute roles={["consumer"]} />,
+        children: [{ path: "/consumer/dashboard", element: <ConsumerDashboardPage /> }],
+      },
+      {
+        element: <ProtectedRoute roles={["consumer", "admin"]} />,
+        children: [{ path: "/consumer/requests/:id", element: <ConsumerRequestDetailPage /> }],
+      },
       {
         element: <ProtectedRoute roles={["agency"]} />,
         children: [
@@ -41,6 +48,7 @@ export const router = createBrowserRouter([
         children: [
           { path: "/admin/dashboard", element: <AdminDashboardPage /> },
           { path: "/admin/agencies", element: <AdminAgenciesPage /> },
+          { path: "/admin/agency-documents", element: <AdminAgencyDocumentsPage /> },
           { path: "/admin/bail-requests", element: <AdminBailRequestsPage /> },
         ],
       },

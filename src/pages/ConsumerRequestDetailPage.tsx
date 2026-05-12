@@ -40,17 +40,23 @@ export function ConsumerRequestDetailPage() {
     setErrorMessage(null);
     setStatusMessage(null);
 
-    const [requestResult, offersResult] = await Promise.all([
-      getBailRequestById(id),
-      getOffersForBailRequest(id),
-    ]);
-
-    setIsLoading(false);
+    const requestResult = await getBailRequestById(id);
 
     if (!requestResult.ok) {
+      setIsLoading(false);
       setErrorMessage(requestResult.error);
       return;
     }
+
+    if (!requestResult.bailRequest) {
+      setIsLoading(false);
+      setBailRequest(null);
+      setOffers([]);
+      return;
+    }
+
+    const offersResult = await getOffersForBailRequest(id);
+    setIsLoading(false);
 
     if (!offersResult.ok) {
       setErrorMessage(offersResult.error);
@@ -87,14 +93,8 @@ export function ConsumerRequestDetailPage() {
       return;
     }
 
+    await loadRequestAndOffers();
     setStatusMessage(result.message);
-    setBailRequest({ ...bailRequest, status: "provider_selected" });
-    setOffers((currentOffers) =>
-      currentOffers.map((currentOffer) => ({
-        ...currentOffer,
-        status: currentOffer.id === offer.id ? "selected" : "declined",
-      })),
-    );
   }
 
   return (

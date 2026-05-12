@@ -12,6 +12,10 @@ export function AdminDashboardPage() {
           <h2>Agencies</h2>
           <p>Review licensing, documents, counties, and marketplace visibility.</p>
         </Link>
+        <Link className="card nav-card" to="/admin/agency-documents">
+          <h2>Agency Documents</h2>
+          <p>Review uploaded license and verification metadata.</p>
+        </Link>
         <Link className="card nav-card" to="/admin/bail-requests">
           <h2>Bail Requests</h2>
           <p>Monitor active request flow and provider offer activity.</p>

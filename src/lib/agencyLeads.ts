@@ -1,6 +1,6 @@
 import type { Agency, BailRequest } from "../types";
 import { getCurrentProfile } from "./auth";
-import { isSupabaseConfigured, supabase } from "./supabase";
+import { isDevelopmentMode, isSupabaseConfigured, supabase } from "./supabase";
 
 export type AgencyLead = BailRequest & {
   match_reason: string;
@@ -92,9 +92,9 @@ export async function getAgencyLeads(): Promise<AgencyLeadsResult> {
     };
   }
 
-  if (!agency && profile?.role === "agency") {
-    // Temporary development fallback: until every agency account is linked to an
-    // agency row, use the first approved agency so the lead inbox remains testable.
+  if (!agency && profile?.role === "agency" && isDevelopmentMode) {
+    // Explicit local-development fallback only. Production agency users must be
+    // linked to their own approved agency before viewing leads.
     const { data: fallbackAgency, error: fallbackError } = await supabase
       .from("agencies")
       .select("*")
@@ -123,7 +123,7 @@ export async function getAgencyLeads(): Promise<AgencyLeadsResult> {
       mocked: false,
       message:
         profile?.role === "agency"
-          ? "No approved agency is linked to your agency profile yet. Submit onboarding or wait for admin approval."
+          ? "Your agency profile is not approved or linked yet. Please complete onboarding or contact BailX support."
           : "Approve an agency before the lead inbox can match requests.",
     };
   }

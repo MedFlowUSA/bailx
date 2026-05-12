@@ -1,6 +1,12 @@
 import { FormEvent, useState } from "react";
 import { SubscriptionTierBadge } from "../components/SubscriptionTierBadge";
 import { createAgencyApplication } from "../lib/agencies";
+import {
+  getAgencyDocumentsForAgency,
+  uploadAgencyDocument,
+  type AgencyDocumentType,
+} from "../lib/agencyDocuments";
+import type { AgencyDocument } from "../types";
 
 function splitList(value: FormDataEntryValue | null) {
   if (typeof value !== "string") {
@@ -15,8 +21,19 @@ function splitList(value: FormDataEntryValue | null) {
 
 export function AgencyOnboardingPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [submittedAgencyId, setSubmittedAgencyId] = useState<string | null>(null);
+  const [documents, setDocuments] = useState<AgencyDocument[]>([]);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  async function loadDocuments(agencyId: string) {
+    const result = await getAgencyDocumentsForAgency(agencyId);
+
+    if (result.ok) {
+      setDocuments(result.documents);
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -45,6 +62,42 @@ export function AgencyOnboardingPage() {
     }
 
     setSuccessMessage(result.message);
+    setSubmittedAgencyId(result.id);
+    await loadDocuments(result.id);
+    event.currentTarget.reset();
+  }
+
+  async function handleDocumentUpload(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!submittedAgencyId) {
+      setErrorMessage("Submit your agency application before uploading documents.");
+      return;
+    }
+
+    const formData = new FormData(event.currentTarget);
+    const file = formData.get("documentFile");
+    const documentType = String(formData.get("documentType") || "bail_license") as AgencyDocumentType;
+
+    setIsUploading(true);
+    setSuccessMessage(null);
+    setErrorMessage(null);
+
+    const result = await uploadAgencyDocument({
+      agencyId: submittedAgencyId,
+      documentType,
+      file: file instanceof File ? file : null,
+    });
+
+    setIsUploading(false);
+
+    if (!result.ok) {
+      setErrorMessage(result.error);
+      return;
+    }
+
+    setSuccessMessage(result.message);
+    await loadDocuments(submittedAgencyId);
     event.currentTarget.reset();
   }
 
@@ -86,10 +139,6 @@ export function AgencyOnboardingPage() {
             Collateral accepted
             <input name="collateralAccepted" placeholder="Cash, title, property..." />
           </label>
-          <label className="upload-placeholder">
-            Upload license placeholder
-            <input name="licenseUpload" type="file" />
-          </label>
           <label>
             Subscription tier placeholder
             <select name="subscriptionTier" defaultValue="pro">
@@ -114,6 +163,55 @@ export function AgencyOnboardingPage() {
           {isSubmitting ? "Submitting..." : "Submit Agency Application"}
         </button>
       </form>
+
+      {submittedAgencyId ? (
+        <section className="card form-card">
+          <div>
+            <p className="eyebrow">Verification documents</p>
+            <h2>Upload agency documents</h2>
+            <p>
+              Add license and verification files for admin review. Documents are
+              stored in the private agency-documents bucket.
+            </p>
+          </div>
+          <form className="form-grid" onSubmit={handleDocumentUpload}>
+            <label>
+              Document type
+              <select name="documentType" defaultValue="bail_license">
+                <option value="bail_license">Bail license</option>
+                <option value="business_registration">Business registration</option>
+                <option value="insurance_bond">Insurance / bond documentation</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
+            <label>
+              Document file
+              <input name="documentFile" type="file" required />
+            </label>
+            <button className="button primary" type="submit" disabled={isUploading}>
+              {isUploading ? "Uploading..." : "Upload Document"}
+            </button>
+          </form>
+
+          {documents.length > 0 ? (
+            <div className="agency-review-list">
+              {documents.map((document) => (
+                <div className="agency-review-item" key={document.id}>
+                  <div>
+                    <h3>{document.file_name}</h3>
+                    <p>
+                      {document.document_type.replace(/_/g, " ")} |{" "}
+                      {document.review_status.replace(/_/g, " ")}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p>No documents uploaded yet.</p>
+          )}
+        </section>
+      ) : null}
     </section>
   );
 }

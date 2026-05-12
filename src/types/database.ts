@@ -29,10 +29,19 @@ export type Agency = {
 export type AgencyDocument = {
   id: string;
   agency_id: string;
-  document_type: "license" | "insurance" | "other";
+  uploaded_by_profile_id?: string | null;
+  document_type: "bail_license" | "business_registration" | "insurance_bond" | "other";
+  file_name: string;
   file_path: string;
-  status: "pending" | "approved" | "rejected";
+  mime_type?: string | null;
+  file_size?: number | null;
+  review_status: "pending" | "approved" | "rejected" | "more_info_requested";
+  admin_notes?: string | null;
   created_at: string;
+  updated_at: string;
+  agencies?: {
+    business_name?: string;
+  } | null;
 };
 
 export type BailRequest = {
