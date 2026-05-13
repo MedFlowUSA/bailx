@@ -22,6 +22,10 @@ function formatMoney(value: number | null | undefined) {
   }).format(value);
 }
 
+function formatList(value?: string[] | null) {
+  return value && value.length > 0 ? value.join(", ") : "Not listed";
+}
+
 const providerChoiceGuidance = [
   "Confirm the total amount due today.",
   "Ask whether the premium is refundable or non-refundable.",
@@ -220,6 +224,41 @@ export function ConsumerRequestDetailPage() {
               ))}
             </ul>
           </article>
+          {bailRequest.has_crypto_collateral ? (
+            <article className="card guidance-card">
+              <p className="eyebrow">Potential Crypto Collateral</p>
+              <h2>Digital asset availability</h2>
+              <dl className="agency-detail-grid">
+                <div>
+                  <dt>Asset categories</dt>
+                  <dd>{formatList(bailRequest.crypto_assets)}</dd>
+                </div>
+                <div>
+                  <dt>Estimated value range</dt>
+                  <dd>{bailRequest.estimated_crypto_value || "Not listed"}</dd>
+                </div>
+                <div>
+                  <dt>Stablecoin willingness</dt>
+                  <dd>{bailRequest.willing_to_convert_to_stablecoin ? "Yes" : "Not indicated"}</dd>
+                </div>
+                <div>
+                  <dt>Preferred stablecoin</dt>
+                  <dd>{bailRequest.preferred_stablecoin || "Not listed"}</dd>
+                </div>
+                {bailRequest.crypto_collateral_notes ? (
+                  <div className="agency-review-notes">
+                    <dt>Notes</dt>
+                    <dd>{bailRequest.crypto_collateral_notes}</dd>
+                  </div>
+                ) : null}
+              </dl>
+              <p className="compliance-note">
+                BailX only records your stated collateral availability. BailX does not custody,
+                convert, value, or transfer crypto. Discuss all collateral terms directly with the
+                selected provider.
+              </p>
+            </article>
+          ) : null}
         </section>
       ) : null}
 

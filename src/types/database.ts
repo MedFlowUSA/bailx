@@ -65,6 +65,15 @@ export type BailRequest = {
   urgency_level: "standard" | "urgent" | "critical";
   preferred_language: string;
   collateral_available: string[];
+  has_crypto_collateral?: boolean | null;
+  crypto_assets?: string[] | null;
+  estimated_crypto_value?: string | null;
+  crypto_wallet_type?: string | null;
+  willing_to_convert_to_stablecoin?: boolean | null;
+  preferred_stablecoin?: string | null;
+  crypto_collateral_notes?: string | null;
+  crypto_collateral_acknowledged?: boolean | null;
+  crypto_collateral_acknowledged_at?: string | null;
   notes?: string;
   consent_marketplace_share?: boolean | null;
   consent_no_legal_advice?: boolean | null;

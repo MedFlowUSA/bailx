@@ -45,6 +45,16 @@ export function AgencyApplyPage() {
           </p>
         </article>
         <article className="card">
+          <h2>Crypto Collateral Marketplace Guidance</h2>
+          <p>
+            Agencies may choose whether they are willing to review crypto-related
+            collateral. Agencies should never request private keys, seed phrases,
+            passwords, or wallet login credentials, and must follow applicable
+            laws and internal collateral procedures. BailX is not the custodian
+            or converter.
+          </p>
+        </article>
+        <article className="card">
           <h2>Subscription Placeholder</h2>
           <p>
             Subscription and placement controls may be added later. BailX does not

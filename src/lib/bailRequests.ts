@@ -21,6 +21,14 @@ export type CreateBailRequestInput = {
   urgency_level: string;
   preferred_language: string;
   collateral_available: string[];
+  has_crypto_collateral?: boolean;
+  crypto_assets?: string[];
+  estimated_crypto_value?: string;
+  crypto_wallet_type?: string;
+  willing_to_convert_to_stablecoin?: boolean;
+  preferred_stablecoin?: string;
+  crypto_collateral_notes?: string;
+  crypto_collateral_acknowledged?: boolean;
   notes?: string;
   consent_marketplace_share: boolean;
   consent_no_legal_advice: boolean;
@@ -60,7 +68,10 @@ function getMatchedMockAgencies(county?: string) {
 
 async function createAgencyMatchEvents(
   requestId: string,
-  input: Pick<CreateBailRequestInput, "jail_county" | "urgency_level" | "preferred_language">,
+  input: Pick<
+    CreateBailRequestInput,
+    "jail_county" | "urgency_level" | "preferred_language" | "has_crypto_collateral"
+  >,
   agencies: MatchedAgency[],
 ) {
   const results = await Promise.all(
@@ -79,6 +90,7 @@ async function createAgencyMatchEvents(
           jail_county: input.jail_county || null,
           urgency_level: input.urgency_level,
           preferred_language: input.preferred_language,
+          has_crypto_collateral: Boolean(input.has_crypto_collateral),
           match_reason: `County match: ${input.jail_county || "Not listed"}`,
         },
       }),
@@ -121,6 +133,18 @@ export async function createBailRequest(
     };
   }
 
+  if (input.has_crypto_collateral && !input.crypto_collateral_acknowledged) {
+    return {
+      ok: false,
+      error:
+        "Review and accept the crypto collateral acknowledgment before submitting crypto collateral information.",
+    };
+  }
+
+  const hasCryptoCollateral = Boolean(input.has_crypto_collateral);
+  const cryptoAcknowledgedAt =
+    hasCryptoCollateral && input.crypto_collateral_acknowledged ? new Date().toISOString() : null;
+
   if (!isSupabaseConfigured || !supabase) {
     const id = `mock-${Date.now()}`;
     const now = new Date().toISOString();
@@ -141,6 +165,19 @@ export async function createBailRequest(
       urgency_level: input.urgency_level as BailRequest["urgency_level"],
       preferred_language: input.preferred_language,
       collateral_available: input.collateral_available,
+      has_crypto_collateral: hasCryptoCollateral,
+      crypto_assets: hasCryptoCollateral ? input.crypto_assets || [] : [],
+      estimated_crypto_value: hasCryptoCollateral ? input.estimated_crypto_value || "" : null,
+      crypto_wallet_type: hasCryptoCollateral ? input.crypto_wallet_type || "" : null,
+      willing_to_convert_to_stablecoin: hasCryptoCollateral
+        ? Boolean(input.willing_to_convert_to_stablecoin)
+        : false,
+      preferred_stablecoin: hasCryptoCollateral ? input.preferred_stablecoin || "" : null,
+      crypto_collateral_notes: hasCryptoCollateral ? input.crypto_collateral_notes || "" : null,
+      crypto_collateral_acknowledged: hasCryptoCollateral
+        ? Boolean(input.crypto_collateral_acknowledged)
+        : false,
+      crypto_collateral_acknowledged_at: cryptoAcknowledgedAt,
       notes: input.notes,
       consent_marketplace_share: input.consent_marketplace_share,
       consent_no_legal_advice: input.consent_no_legal_advice,
@@ -164,6 +201,7 @@ export async function createBailRequest(
       payload: {
         jail_county: input.jail_county || null,
         urgency_level: input.urgency_level,
+        has_crypto_collateral: hasCryptoCollateral,
       },
     });
 
@@ -202,6 +240,19 @@ export async function createBailRequest(
       urgency_level: input.urgency_level,
       preferred_language: input.preferred_language,
       collateral_available: input.collateral_available,
+      has_crypto_collateral: hasCryptoCollateral,
+      crypto_assets: hasCryptoCollateral ? input.crypto_assets || [] : null,
+      estimated_crypto_value: hasCryptoCollateral ? input.estimated_crypto_value || null : null,
+      crypto_wallet_type: hasCryptoCollateral ? input.crypto_wallet_type || null : null,
+      willing_to_convert_to_stablecoin: hasCryptoCollateral
+        ? Boolean(input.willing_to_convert_to_stablecoin)
+        : false,
+      preferred_stablecoin: hasCryptoCollateral ? input.preferred_stablecoin || null : null,
+      crypto_collateral_notes: hasCryptoCollateral ? input.crypto_collateral_notes || null : null,
+      crypto_collateral_acknowledged: hasCryptoCollateral
+        ? Boolean(input.crypto_collateral_acknowledged)
+        : false,
+      crypto_collateral_acknowledged_at: cryptoAcknowledgedAt,
       notes: input.notes || null,
       consent_marketplace_share: input.consent_marketplace_share,
       consent_no_legal_advice: input.consent_no_legal_advice,
@@ -228,6 +279,7 @@ export async function createBailRequest(
     payload: {
       jail_county: input.jail_county || null,
       urgency_level: input.urgency_level,
+      has_crypto_collateral: hasCryptoCollateral,
     },
   });
 

@@ -16,6 +16,10 @@ function formatMoney(value: number | null) {
   }).format(value);
 }
 
+function formatList(value?: string[] | null) {
+  return value && value.length > 0 ? value.join(", ") : "Not listed";
+}
+
 export function AgencyLeadsPage() {
   const [agency, setAgency] = useState<Agency | null>(null);
   const [leads, setLeads] = useState<AgencyLead[]>([]);
@@ -143,6 +147,9 @@ export function AgencyLeadsPage() {
                 </p>
               </div>
               <div className="lead-meta">
+                {lead.has_crypto_collateral ? (
+                  <span className="soft-badge">Crypto collateral indicated</span>
+                ) : null}
                 <span className="status-pill urgent">{lead.urgency_level}</span>
                 <strong>{formatMoney(lead.bond_amount)}</strong>
               </div>
@@ -187,6 +194,40 @@ export function AgencyLeadsPage() {
               <div className="card-subsection">
                 <strong>Requester notes</strong>
                 <p>{lead.notes}</p>
+              </div>
+            ) : null}
+            {lead.has_crypto_collateral ? (
+              <div className="card-subsection">
+                <strong>Crypto collateral indicated</strong>
+                <dl className="agency-detail-grid">
+                  <div>
+                    <dt>Asset categories</dt>
+                    <dd>{formatList(lead.crypto_assets)}</dd>
+                  </div>
+                  <div>
+                    <dt>Estimated value range</dt>
+                    <dd>{lead.estimated_crypto_value || "Not listed"}</dd>
+                  </div>
+                  <div>
+                    <dt>Willing to convert to stablecoin</dt>
+                    <dd>{lead.willing_to_convert_to_stablecoin ? "Yes" : "Not indicated"}</dd>
+                  </div>
+                  <div>
+                    <dt>Preferred stablecoin</dt>
+                    <dd>{lead.preferred_stablecoin || "Not listed"}</dd>
+                  </div>
+                  {lead.crypto_collateral_notes ? (
+                    <div className="agency-review-notes">
+                      <dt>Notes</dt>
+                      <dd>{lead.crypto_collateral_notes}</dd>
+                    </div>
+                  ) : null}
+                </dl>
+                <p className="compliance-note">
+                  Do not request private keys, seed phrases, passwords, or wallet login
+                  credentials. Any crypto collateral arrangement must comply with applicable law
+                  and your agency's approved procedures.
+                </p>
               </div>
             ) : null}
             <RequestStatusTimeline status={lead.status} compact />

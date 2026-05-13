@@ -39,6 +39,20 @@ export function ConsumerDisclosuresPage() {
           </p>
         </article>
         <article className="card">
+          <h2>Digital Asset / Crypto Collateral Disclosure</h2>
+          <p>
+            Crypto values can fluctuate, and stablecoins may have issuer, reserve,
+            redemption, freeze, and regulatory risks. BailX does not custody,
+            convert, hold, value, or transfer crypto and does not guarantee any
+            provider will accept crypto-related collateral.
+          </p>
+          <p>
+            Never share private keys, seed phrases, wallet passwords, or login
+            credentials. Any collateral terms must be reviewed directly with the
+            independent provider.
+          </p>
+        </article>
+        <article className="card">
           <h2>Legal Support</h2>
           <p>
             BailX does not replace legal counsel. Public defenders, nonprofit bail

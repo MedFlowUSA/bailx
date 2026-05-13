@@ -31,6 +31,10 @@ function formatPayload(payload: Record<string, unknown>) {
   return text.length > 220 ? `${text.slice(0, 220)}...` : text;
 }
 
+function formatList(value?: string[] | null) {
+  return value && value.length > 0 ? value.join(", ") : "Not listed";
+}
+
 export function AdminBailRequestDetailPage() {
   const { id } = useParams();
   const [bailRequest, setBailRequest] = useState<BailRequest | null>(null);
@@ -267,6 +271,63 @@ export function AdminBailRequestDetailPage() {
               </div>
             </dl>
           </article>
+
+          {bailRequest.has_crypto_collateral ? (
+            <article className="card admin-list-card">
+              <div className="admin-list-header">
+                <div>
+                  <p className="eyebrow">Crypto collateral audit</p>
+                  <h2>Potential digital asset collateral</h2>
+                </div>
+                <span className="soft-badge">Crypto collateral indicated</span>
+              </div>
+              <dl className="agency-detail-grid">
+                <div>
+                  <dt>Crypto collateral indicated</dt>
+                  <dd>Yes</dd>
+                </div>
+                <div>
+                  <dt>Assets</dt>
+                  <dd>{formatList(bailRequest.crypto_assets)}</dd>
+                </div>
+                <div>
+                  <dt>Estimated value range</dt>
+                  <dd>{bailRequest.estimated_crypto_value || "Not listed"}</dd>
+                </div>
+                <div>
+                  <dt>Wallet type</dt>
+                  <dd>{bailRequest.crypto_wallet_type || "Not listed"}</dd>
+                </div>
+                <div>
+                  <dt>Stablecoin willingness</dt>
+                  <dd>{bailRequest.willing_to_convert_to_stablecoin ? "Yes" : "Not indicated"}</dd>
+                </div>
+                <div>
+                  <dt>Preferred stablecoin</dt>
+                  <dd>{bailRequest.preferred_stablecoin || "Not listed"}</dd>
+                </div>
+                <div>
+                  <dt>Acknowledgment</dt>
+                  <dd>{bailRequest.crypto_collateral_acknowledged ? "Recorded" : "Not recorded"}</dd>
+                </div>
+                <div>
+                  <dt>Acknowledged at</dt>
+                  <dd>{formatDateTime(bailRequest.crypto_collateral_acknowledged_at)}</dd>
+                </div>
+                {bailRequest.crypto_collateral_notes ? (
+                  <div className="agency-review-notes">
+                    <dt>Notes</dt>
+                    <dd>{bailRequest.crypto_collateral_notes}</dd>
+                  </div>
+                ) : null}
+              </dl>
+              <p className="compliance-note">
+                BailX is recording collateral interest only. BailX should not custody, convert,
+                hold, value, or transfer digital assets without legal review, AML/KYC controls,
+                and required licensing.
+              </p>
+            </article>
+          ) : null}
 
           {selectedOffer ? (
             <article className="card selected-offer">

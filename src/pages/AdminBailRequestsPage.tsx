@@ -171,6 +171,9 @@ export function AdminBailRequestsPage() {
                 <p className="eyebrow">Created {new Date(request.created_at).toLocaleDateString()}</p>
                 <h2>{request.defendant_name || "Defendant not listed"}</h2>
                 <p>{request.requester_name || "Unknown requester"}</p>
+                {request.has_crypto_collateral ? (
+                  <span className="soft-badge">Crypto collateral</span>
+                ) : null}
               </div>
               <span
                 className={

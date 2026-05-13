@@ -336,6 +336,25 @@ create duplicate match events.
 - The current Edge Function uses a simulated sender adapter only. Real provider
   integrations should be added server-side later, never in React.
 
+## Crypto Collateral Intake QA
+
+1. Apply migration `022_crypto_collateral_intake.sql`.
+2. Open `/get-help-now`.
+3. Select crypto collateral.
+4. Confirm crypto fields appear.
+5. Try submitting without the crypto acknowledgment.
+6. Confirm validation blocks submission.
+7. Complete the acknowledgment and submit.
+8. Confirm the request saves crypto collateral metadata.
+9. Sign in as a consumer and confirm the crypto card appears on request detail.
+10. Sign in as an agency and confirm a matched lead shows the crypto collateral
+    badge and details.
+11. Sign in as admin and confirm admin request detail shows the crypto audit
+    section.
+12. Confirm no wallet address, private key, seed phrase, password, screenshot,
+    or login credential fields exist.
+13. Run `npm run build`.
+
 ## Status Timeline Test
 
 1. Submit a request from `/get-help-now`.
