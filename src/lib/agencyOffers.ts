@@ -1,6 +1,15 @@
 import type { AgencyOffer } from "../types";
 import { getCurrentProfile } from "./auth";
 import { updateMockConsumerRequestStatus } from "./consumerRequests";
+import {
+  getDemoAgencyDetail,
+  getDemoOffersForAgency,
+  getDemoOffersForRequest,
+  getOfferCounts,
+  getSelectedOffers,
+  shouldUseDemoData,
+} from "./demoData";
+import { addDemoOffer, updateDemoRequest } from "./demoStore";
 import { createNotificationEvent } from "./notificationEvents";
 import { isSupabaseConfigured, supabase } from "./supabase";
 
@@ -62,6 +71,46 @@ const mockOffers: AgencyOffer[] = [];
 export async function createAgencyOffer(
   input: CreateAgencyOfferInput,
 ): Promise<AgencyOfferResult> {
+  if (shouldUseDemoData()) {
+    const agency = getDemoAgencyDetail();
+
+    if (!agency || agency.verification_status !== "approved") {
+      return {
+        ok: false,
+        error: "Demo agency profile is not approved or linked.",
+      };
+    }
+
+    const now = new Date().toISOString();
+    const offer: AgencyOffer = {
+      id: `demo-offer-${Date.now()}`,
+      agency_id: agency.id,
+      bail_request_id: input.bail_request_id,
+      down_payment: input.down_payment,
+      estimated_release_time: input.estimated_release_time,
+      financing_available: input.financing_available,
+      collateral_notes: input.collateral_notes,
+      message: input.message,
+      status: "submitted",
+      created_at: now,
+      updated_at: now,
+      agencies: {
+        business_name: agency.business_name,
+        phone: agency.phone,
+        email: agency.email,
+      },
+    };
+    addDemoOffer(offer);
+    updateDemoRequest(input.bail_request_id, { status: "offers_received" });
+
+    return {
+      ok: true,
+      id: offer.id,
+      mocked: true,
+      message: "Demo offer submitted locally. No provider or consumer notification was sent.",
+    };
+  }
+
   let agencyId = input.agency_id;
 
   if (isSupabaseConfigured && supabase) {
@@ -193,6 +242,14 @@ export async function createAgencyOffer(
 export async function getOffersForBailRequest(
   bailRequestId: string,
 ): Promise<AgencyOffersResult> {
+  if (shouldUseDemoData()) {
+    return {
+      ok: true,
+      offers: getDemoOffersForRequest(bailRequestId),
+      mocked: true,
+    };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     return {
       ok: true,
@@ -222,6 +279,14 @@ export async function getOffersForBailRequest(
 }
 
 export async function getAgencyOffers(agencyId: string): Promise<AgencyOffersResult> {
+  if (shouldUseDemoData()) {
+    return {
+      ok: true,
+      offers: getDemoOffersForAgency(agencyId),
+      mocked: true,
+    };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     return {
       ok: true,
@@ -255,6 +320,10 @@ export async function getOfferCountsForBailRequests(
 ): Promise<OfferCountsResult> {
   if (bailRequestIds.length === 0) {
     return { ok: true, counts: {} };
+  }
+
+  if (shouldUseDemoData()) {
+    return { ok: true, counts: getOfferCounts(bailRequestIds) };
   }
 
   if (!isSupabaseConfigured || !supabase) {
@@ -294,6 +363,10 @@ export async function getSelectedOffersForBailRequests(
 ): Promise<SelectedOffersResult> {
   if (bailRequestIds.length === 0) {
     return { ok: true, selectedOffers: {} };
+  }
+
+  if (shouldUseDemoData()) {
+    return { ok: true, selectedOffers: getSelectedOffers(bailRequestIds) };
   }
 
   if (!isSupabaseConfigured || !supabase) {
@@ -340,6 +413,27 @@ export async function selectAgencyOffer(
   offerId: string,
   bailRequestId: string,
 ): Promise<AgencyOfferResult> {
+  if (shouldUseDemoData()) {
+    const offers = getDemoOffersForRequest(bailRequestId);
+
+    offers.forEach((offer) => {
+      addDemoOffer({
+        ...offer,
+        status: offer.id === offerId ? "selected" : "declined",
+        updated_at: new Date().toISOString(),
+      });
+    });
+    updateDemoRequest(bailRequestId, { status: "provider_selected" });
+
+    return {
+      ok: true,
+      id: offerId,
+      mocked: true,
+      message:
+        "Demo provider selected locally. Please confirm all terms directly in a real workflow.",
+    };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     mockOffers.forEach((offer) => {
       if (offer.bail_request_id !== bailRequestId) {

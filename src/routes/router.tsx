@@ -44,6 +44,11 @@ const AdminProviderDirectoryPage = lazy(() =>
 const AttorneysPage = lazy(() =>
   import("../pages/AttorneysPage").then((module) => ({ default: module.AttorneysPage })),
 );
+const AttorneyDashboardPage = lazy(() =>
+  import("../pages/AttorneyDashboardPage").then((module) => ({
+    default: module.AttorneyDashboardPage,
+  })),
+);
 const AgencyApplyPage = lazy(() =>
   import("../pages/AgencyApplyPage").then((module) => ({ default: module.AgencyApplyPage })),
 );
@@ -78,6 +83,9 @@ const ConsumerDisclosuresPage = lazy(() =>
   import("../pages/ConsumerDisclosuresPage").then((module) => ({
     default: module.ConsumerDisclosuresPage,
   })),
+);
+const DemoGuidePage = lazy(() =>
+  import("../pages/DemoGuidePage").then((module) => ({ default: module.DemoGuidePage })),
 );
 const GetHelpNowPage = lazy(() =>
   import("../pages/GetHelpNowPage").then((module) => ({ default: module.GetHelpNowPage })),
@@ -131,6 +139,7 @@ export const router = createBrowserRouter([
       { path: "/terms", element: lazyPage(<TermsPage />) },
       { path: "/compliance", element: lazyPage(<CompliancePage />) },
       { path: "/consumer-disclosures", element: lazyPage(<ConsumerDisclosuresPage />) },
+      { path: "/demo", element: lazyPage(<DemoGuidePage />) },
       { path: "/auth/sign-in", element: lazyPage(<SignInPage />) },
       { path: "/auth/sign-up", element: lazyPage(<SignUpPage />) },
       { path: "/auth/sign-out", element: <SignOutPage /> },
@@ -150,8 +159,17 @@ export const router = createBrowserRouter([
         element: <ProtectedRoute roles={["agency"]} />,
         children: [
           { path: "/agency/onboarding", element: lazyPage(<AgencyOnboardingPage />) },
+          { path: "/agency/documents", element: lazyPage(<AgencyOnboardingPage />) },
           { path: "/agency/dashboard", element: lazyPage(<AgencyDashboardPage />) },
           { path: "/agency/leads", element: lazyPage(<AgencyLeadsPage />) },
+        ],
+      },
+      {
+        element: <ProtectedRoute roles={["attorney"]} />,
+        children: [
+          { path: "/attorney/dashboard", element: lazyPage(<AttorneyDashboardPage />) },
+          { path: "/attorney/advertising", element: lazyPage(<AttorneyDashboardPage />) },
+          { path: "/attorney/compliance", element: lazyPage(<AttorneyDashboardPage />) },
         ],
       },
       {

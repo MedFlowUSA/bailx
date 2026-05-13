@@ -203,6 +203,27 @@ export type NotificationEvent = {
   skipped_reason?: string | null;
 };
 
+export type CustomerRequestTask = {
+  id: string;
+  bail_request_id: string;
+  profile_id: string;
+  task_key: "provider_contacted" | "terms_confirmed" | "documents_ready" | "family_notified";
+  completed: boolean;
+  completed_at?: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CustomerOfferNote = {
+  id: string;
+  offer_id: string;
+  bail_request_id: string;
+  profile_id: string;
+  note?: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type BailXTables = {
   profiles: Profile;
   agencies: Agency;
@@ -214,4 +235,6 @@ export type BailXTables = {
   attorney_ads: AttorneyAd;
   admin_notes: AdminNote;
   notification_events: NotificationEvent;
+  customer_request_tasks: CustomerRequestTask;
+  customer_offer_notes: CustomerOfferNote;
 };

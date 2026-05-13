@@ -1,5 +1,6 @@
 import type { Agency, BailRequest } from "../types";
 import { getCurrentProfile } from "./auth";
+import { getDemoAgencyDetail, getDemoAgencyLeads, shouldUseDemoData } from "./demoData";
 import { isDevelopmentMode, isSupabaseConfigured, supabase } from "./supabase";
 
 export type AgencyLead = BailRequest & {
@@ -70,6 +71,16 @@ const mockLeads: AgencyLead[] = [
 ];
 
 export async function getAgencyLeads(): Promise<AgencyLeadsResult> {
+  if (shouldUseDemoData()) {
+    return {
+      ok: true,
+      agency: getDemoAgencyDetail(),
+      leads: getDemoAgencyLeads(),
+      mocked: true,
+      message: "Showing seeded demo leads. No real requester details are loaded.",
+    };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     return {
       ok: true,

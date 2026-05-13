@@ -8,6 +8,7 @@ import {
   type NotificationEventsResult,
   type NotificationStatus,
 } from "./notificationEvents";
+import { getDemoNotifications, shouldUseDemoData } from "./demoData";
 import { isSupabaseConfigured, supabase } from "./supabase";
 
 export type NotificationAdminFilters = {
@@ -52,6 +53,14 @@ export async function getNotificationEventsForAdmin(
   filters: NotificationAdminFilters = {},
 ): Promise<NotificationEventsResult> {
   const limit = filters.limit || 100;
+
+  if (shouldUseDemoData()) {
+    return {
+      ok: true,
+      mocked: true,
+      events: applyLocalFilters(getDemoNotifications(), filters).slice(0, limit),
+    };
+  }
 
   if (!isSupabaseConfigured || !supabase) {
     const result = await getRecentNotificationEvents(limit);
@@ -188,6 +197,26 @@ export async function processPendingNotificationEvents(input?: {
   batchSize?: number;
   channel?: NotificationChannel | "all";
 }): Promise<NotificationProcessorInvokeResult> {
+  if (shouldUseDemoData()) {
+    const events = applyLocalFilters(getDemoNotifications(), {
+      status: "pending",
+      channel: input?.channel || "all",
+      limit: input?.batchSize || 10,
+    }).slice(0, input?.batchSize || 10);
+
+    return {
+      ok: true,
+      mocked: true,
+      message: "Demo processor simulated locally. No SMS, email, or provider integration ran.",
+      summary: {
+        processed: 0,
+        failed: 0,
+        skipped: events.length,
+        handledEventIds: events.map((event) => event.id),
+      },
+    };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     return {
       ok: true,
@@ -245,6 +274,10 @@ function applyLocalFilters(
 }
 
 async function findNotificationEvent(eventId: string): Promise<NotificationEvent | null> {
+  if (shouldUseDemoData()) {
+    return getDemoNotifications().find((event) => event.id === eventId) || null;
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     const result = await getRecentNotificationEvents(500);
     return result.ok ? result.events.find((event) => event.id === eventId) || null : null;

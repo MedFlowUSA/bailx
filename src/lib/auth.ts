@@ -1,5 +1,6 @@
 import type { User } from "@supabase/supabase-js";
 import type { Profile } from "../types";
+import { getDemoProfile, isDemoModeEnabled } from "./demoMode";
 import { isSupabaseConfigured, supabase } from "./supabase";
 
 export type UserRole = "consumer" | "agency" | "admin" | "attorney";
@@ -25,6 +26,13 @@ export type ProfileInput = {
 };
 
 export async function getCurrentUser() {
+  if (isDemoModeEnabled()) {
+    return {
+      id: getDemoProfile()?.auth_user_id || "demo-auth-user",
+      email: getDemoProfile()?.email || "demo@example.com",
+    } as User;
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     return null;
   }
@@ -34,6 +42,10 @@ export async function getCurrentUser() {
 }
 
 export async function getCurrentProfile() {
+  if (isDemoModeEnabled()) {
+    return getDemoProfile();
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     return null;
   }
@@ -247,7 +259,7 @@ export function getDashboardPathForRole(role?: string | null) {
     case "admin":
       return "/admin/dashboard";
     case "attorney":
-      return "/attorneys";
+      return "/attorney/dashboard";
     case "consumer":
     default:
       return "/consumer/dashboard";

@@ -1,4 +1,6 @@
 import type { NotificationEvent } from "../types";
+import { getDemoNotifications, shouldUseDemoData } from "./demoData";
+import { updateDemoNotificationStatus } from "./demoStore";
 import { isSupabaseConfigured, supabase } from "./supabase";
 
 export type NotificationEventType = NotificationEvent["event_type"];
@@ -78,6 +80,11 @@ export async function createNotificationEvent(
   input: CreateNotificationEventInput,
 ): Promise<NotificationEventMutationResult> {
   try {
+    if (shouldUseDemoData()) {
+      const event = createMockEvent(input);
+      return { ok: true, event, mocked: true };
+    }
+
     if (!isSupabaseConfigured || !supabase) {
       const event = createMockEvent(input);
       mockNotificationEvents.unshift(event);
@@ -114,6 +121,10 @@ export async function createNotificationEvent(
 }
 
 export async function getRecentNotificationEvents(limit = 10): Promise<NotificationEventsResult> {
+  if (shouldUseDemoData()) {
+    return { ok: true, events: getDemoNotifications().slice(0, limit), mocked: true };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     return { ok: true, events: mockNotificationEvents.slice(0, limit), mocked: true };
   }
@@ -136,6 +147,16 @@ export async function getNotificationEventsForEntity(
   entityId: string,
   limit = 8,
 ): Promise<NotificationEventsResult> {
+  if (shouldUseDemoData()) {
+    return {
+      ok: true,
+      events: getDemoNotifications()
+        .filter((event) => event.entity_type === entityType && event.entity_id === entityId)
+        .slice(0, limit),
+      mocked: true,
+    };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     return {
       ok: true,
@@ -178,6 +199,22 @@ export async function updateNotificationEventForAdmin(
   id: string,
   updates: NotificationEventAdminUpdate,
 ): Promise<NotificationEventMutationResult> {
+  if (shouldUseDemoData()) {
+    const current = getDemoNotifications().find((item) => item.id === id);
+
+    if (!current) {
+      return { ok: false, error: "Notification event not found." };
+    }
+
+    updateDemoNotificationStatus(id, updates.status || current.status, updates);
+
+    return {
+      ok: true,
+      event: { ...current, ...updates },
+      mocked: true,
+    };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     const event = mockNotificationEvents.find((item) => item.id === id);
 
@@ -208,6 +245,21 @@ async function updateNotificationEventStatus(
   status: Extract<NotificationStatus, "processed" | "failed">,
   errorMessage: string | null,
 ): Promise<NotificationEventMutationResult> {
+  if (shouldUseDemoData()) {
+    const current = getDemoNotifications().find((item) => item.id === id);
+
+    if (!current) {
+      return { ok: false, error: "Notification event not found." };
+    }
+
+    updateDemoNotificationStatus(id, status, { error_message: errorMessage });
+    return {
+      ok: true,
+      event: { ...current, status, error_message: errorMessage },
+      mocked: true,
+    };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     const event = mockNotificationEvents.find((item) => item.id === id);
 

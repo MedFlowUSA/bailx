@@ -28,6 +28,32 @@ Consumers must sign in to view their own request dashboard and offers. Anonymous
 emergency intake remains public, but anonymous users cannot track submitted
 requests from the consumer dashboard.
 
+## Demo Mode QA
+
+Demo Mode is an explicitly enabled testing layer. It should never require service-role
+keys in React and does not weaken production RLS.
+
+1. Set `VITE_BAILX_DEMO_MODE=true`.
+2. Run the app.
+3. Open `/demo`.
+4. Switch to Consumer Demo.
+5. Confirm the consumer dashboard loads without a real login.
+6. Open a request detail page.
+7. Confirm offers, selected provider state, checklist progress, and private notes appear.
+8. Switch to Agency Demo.
+9. Confirm the agency dashboard and leads load.
+10. Submit or review a demo offer and confirm it is saved locally only.
+11. Switch to Admin Demo.
+12. Confirm admin dashboard, requests, agencies, agency documents, notifications, and directory links load.
+13. Add an admin note and mark a notification skipped or retried.
+14. Switch to Attorney Demo.
+15. Confirm the attorney placeholder loads at `/attorney/dashboard`.
+16. Click Reset Demo Data.
+17. Confirm seeded state returns while the selected role remains available.
+18. Set `VITE_BAILX_DEMO_MODE=false`.
+19. Confirm normal auth route protection returns.
+20. Run `npm run build`.
+
 ## Trust, Compliance, and Operational Superiority QA
 
 1. Visit `/privacy`, `/terms`, `/compliance`, and `/consumer-disclosures`.

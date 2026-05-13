@@ -1,5 +1,7 @@
 import type { AdminNote } from "../types";
 import { getCurrentProfile } from "./auth";
+import { getDemoAdminNotesForEntity, getDemoAdminDashboardData, shouldUseDemoData } from "./demoData";
+import { addDemoAdminNote } from "./demoStore";
 import { isSupabaseConfigured, supabase } from "./supabase";
 
 export type AdminNoteEntityType =
@@ -78,6 +80,16 @@ export async function createAdminNote(
     return { ok: false, error: "Add a note before saving." };
   }
 
+  if (shouldUseDemoData()) {
+    const note = addDemoAdminNote(input.entityType, input.entityId, trimmedMessage);
+
+    if (!note) {
+      return { ok: false, error: "Add a note before saving." };
+    }
+
+    return { ok: true, note, mocked: true, message: "Demo admin activity captured locally." };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     const note = buildMockNote({ ...input, message: trimmedMessage });
     mockAdminNotes.unshift(note);
@@ -123,6 +135,14 @@ export async function getAdminNotesForEntity(
   entityType: AdminNoteEntityType,
   entityId: string,
 ): Promise<AdminNotesResult> {
+  if (shouldUseDemoData()) {
+    return {
+      ok: true,
+      notes: getDemoAdminNotesForEntity(entityType, entityId),
+      mocked: true,
+    };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     return {
       ok: true,
@@ -152,6 +172,14 @@ export async function getAdminNotesForEntity(
 }
 
 export async function getRecentAdminNotes(limit = 8): Promise<AdminNotesResult> {
+  if (shouldUseDemoData()) {
+    return {
+      ok: true,
+      notes: getDemoAdminDashboardData().adminNotes.slice(0, limit),
+      mocked: true,
+    };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     return { ok: true, notes: mockAdminNotes.slice(0, limit), mocked: true };
   }

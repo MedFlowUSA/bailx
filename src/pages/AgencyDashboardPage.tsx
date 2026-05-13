@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { AgencyVerificationChecklist } from "../components/AgencyVerificationChecklist";
 import { MissingItemsList } from "../components/MissingItemsList";
 import { NextActionCard } from "../components/NextActionCard";
 import { ProgressSummaryCard } from "../components/ProgressSummaryCard";
@@ -8,6 +9,7 @@ import { getCurrentAgencyApplication } from "../lib/agencies";
 import { getAgencyDocumentsForAgency } from "../lib/agencyDocuments";
 import { getAgencyLeads } from "../lib/agencyLeads";
 import { getAgencyOffers } from "../lib/agencyOffers";
+import { updateAgencyProfile } from "../lib/agencyProfile";
 import {
   countAgencyDocumentsByStatus,
   getAgencyVerificationProgress,
@@ -24,6 +26,17 @@ function formatTierBadge(value?: string | null): "Starter" | "Pro" | "Priority" 
     default:
       return "Starter";
   }
+}
+
+function splitList(value: FormDataEntryValue | null) {
+  if (typeof value !== "string") {
+    return [];
+  }
+
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 const agencyWorkflow = [
@@ -50,12 +63,24 @@ const offerStandards = [
   "Avoid legal advice, outcome promises, or misleading urgency claims.",
 ];
 
+const agencyMissingItemTargets: Record<string, string> = {
+  "Owner or contact information": "#agency-profile-editor",
+  "License number": "#agency-profile-editor",
+  "Service counties": "#agency-profile-editor",
+  Languages: "#agency-profile-editor",
+  "Collateral preferences": "#agency-profile-editor",
+  "Documents uploaded": "#agency-document-action-center",
+  "Documents approved": "#agency-document-action-center",
+  "Marketplace approved": "#agency-marketplace-status",
+};
+
 export function AgencyDashboardPage() {
   const [agency, setAgency] = useState<Agency | null>(null);
   const [documents, setDocuments] = useState<AgencyDocument[]>([]);
   const [offers, setOffers] = useState<AgencyOffer[]>([]);
   const [leadCount, setLeadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -101,6 +126,40 @@ export function AgencyDashboardPage() {
   useEffect(() => {
     void loadDashboard();
   }, []);
+
+  async function handleProfileSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!agency) {
+      return;
+    }
+
+    const formData = new FormData(event.currentTarget);
+    setIsSavingProfile(true);
+    setErrorMessage(null);
+    setStatusMessage(null);
+
+    const result = await updateAgencyProfile({
+      agencyId: agency.id,
+      business_name: String(formData.get("businessName") || ""),
+      contact_name: String(formData.get("contactName") || ""),
+      phone: String(formData.get("phone") || ""),
+      email: String(formData.get("email") || ""),
+      service_counties: splitList(formData.get("serviceCounties")),
+      languages: splitList(formData.get("languages")),
+      collateral_accepted: splitList(formData.get("collateralAccepted")),
+      subscription_tier: String(formData.get("subscriptionTier") || agency.subscription_tier || "starter"),
+    });
+    setIsSavingProfile(false);
+
+    if (!result.ok) {
+      setErrorMessage(result.error);
+      return;
+    }
+
+    setAgency(result.agency);
+    setStatusMessage(result.message);
+  }
 
   const documentCounts = countAgencyDocumentsByStatus(documents);
   const agencyProgress = getAgencyVerificationProgress(agency, documents);
@@ -159,6 +218,7 @@ export function AgencyDashboardPage() {
             title="Missing verification items"
             items={agencyProgress.missingItems}
             emptyMessage="No core profile gaps are currently detected."
+            itemTargets={agencyMissingItemTargets}
           />
           <NextActionCard action={agencyProgress.nextRecommendedAction}>
             <div className="hero-actions">
@@ -170,6 +230,80 @@ export function AgencyDashboardPage() {
               </Link>
             </div>
           </NextActionCard>
+        </section>
+      ) : null}
+
+      {agency ? (
+        <section className="dashboard-grid">
+          <AgencyVerificationChecklist agency={agency} documents={documents} leadCount={leadCount} />
+          <article className="card agency-command-card" id="agency-marketplace-status">
+            <p className="eyebrow">Marketplace status</p>
+            <h2>{isApproved ? "Approved for lead access" : "Verification required before lead access"}</h2>
+            <p>
+              {isApproved
+                ? "You can review matched leads and submit transparent offers."
+                : "Complete verification before lead access. Your dashboard will update as documents and profile details are reviewed."}
+            </p>
+          </article>
+        </section>
+      ) : null}
+
+      {agency ? (
+        <section className="card form-card" id="agency-profile-editor">
+          <p className="eyebrow">Agency profile editor</p>
+          <h2>Complete agency profile</h2>
+          <p>
+            Update profile details used for marketplace review. Agencies cannot self-approve
+            verification status or edit admin review notes.
+          </p>
+          <form className="form-grid" onSubmit={handleProfileSubmit}>
+            <label>
+              Business name
+              <input name="businessName" defaultValue={agency.business_name || ""} />
+            </label>
+            <label>
+              Contact name
+              <input name="contactName" defaultValue={agency.contact_name || ""} />
+            </label>
+            <label>
+              Phone
+              <input name="phone" type="tel" defaultValue={agency.phone || ""} />
+            </label>
+            <label>
+              Email
+              <input name="email" type="email" defaultValue={agency.email || ""} />
+            </label>
+            <label>
+              Service counties
+              <input
+                name="serviceCounties"
+                defaultValue={agency.service_counties?.join(", ") || ""}
+              />
+            </label>
+            <label>
+              Languages
+              <input name="languages" defaultValue={agency.languages?.join(", ") || ""} />
+            </label>
+            <label>
+              Collateral accepted
+              <input
+                name="collateralAccepted"
+                defaultValue={agency.collateral_accepted?.join(", ") || ""}
+              />
+            </label>
+            <label>
+              Subscription tier placeholder
+              <select name="subscriptionTier" defaultValue={agency.subscription_tier || "starter"}>
+                <option value="starter">Starter</option>
+                <option value="pro">Pro</option>
+                <option value="priority">Priority</option>
+                <option value="directory">Directory</option>
+              </select>
+            </label>
+            <button className="button primary" type="submit" disabled={isSavingProfile}>
+              {isSavingProfile ? "Saving..." : "Save Agency Profile"}
+            </button>
+          </form>
         </section>
       ) : null}
 
@@ -196,7 +330,7 @@ export function AgencyDashboardPage() {
 
       {agency ? (
         <section className="dashboard-grid">
-          <article className="card agency-command-card">
+          <article className="card agency-command-card" id="agency-document-action-center">
             <p className="eyebrow">Document readiness</p>
             <h2>{documents.length > 0 ? `${documents.length} uploaded` : "No documents uploaded"}</h2>
             <dl className="agency-detail-grid">
@@ -410,6 +544,23 @@ export function AgencyDashboardPage() {
           <Link className="button secondary" to="/agency/onboarding">
             Manage Documents
           </Link>
+          <div className="admin-note-list">
+            {documents
+              .filter((document) =>
+                ["rejected", "more_info_requested", "pending"].includes(document.review_status),
+              )
+              .map((document) => (
+                <div className="admin-note-row" key={document.id}>
+                  <span>
+                    {document.file_name}
+                    <small>
+                      {document.review_status.replace(/_/g, " ")}
+                      {document.admin_notes ? ` | ${document.admin_notes}` : ""}
+                    </small>
+                  </span>
+                </div>
+              ))}
+          </div>
         </article>
 
         <article className="card agency-command-card">

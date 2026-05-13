@@ -6,6 +6,8 @@ export type {
   AttorneyAd,
   BailXTables,
   BailRequest,
+  CustomerOfferNote,
+  CustomerRequestTask,
   NotificationEvent,
   Profile,
   Review,

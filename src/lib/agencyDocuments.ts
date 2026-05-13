@@ -1,5 +1,7 @@
 import type { AgencyDocument } from "../types";
 import { getCurrentProfile } from "./auth";
+import { getDemoAgencyDocuments, shouldUseDemoData } from "./demoData";
+import { addDemoAdminNote, updateDemoDocument } from "./demoStore";
 import { createNotificationEvent } from "./notificationEvents";
 import { isSupabaseConfigured, supabase } from "./supabase";
 
@@ -208,6 +210,14 @@ export async function uploadAgencyDocument(
 export async function getAgencyDocumentsForAgency(
   agencyId: string,
 ): Promise<AgencyDocumentsResult> {
+  if (shouldUseDemoData()) {
+    return {
+      ok: true,
+      documents: getDemoAgencyDocuments(agencyId),
+      mocked: true,
+    };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     return {
       ok: true,
@@ -239,6 +249,15 @@ export async function getAgencyDocumentsForAgency(
 export async function getAgencyDocumentsForAdminReview(
   options: AdminAgencyDocumentsOptions = {},
 ): Promise<AgencyDocumentsResult> {
+  if (shouldUseDemoData()) {
+    const documents = getDemoAgencyDocuments(options.agencyId);
+    return {
+      ok: true,
+      documents: documents.slice(0, options.limit || documents.length),
+      mocked: true,
+    };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     const documents = options.agencyId
       ? mockDocuments.filter((document) => document.agency_id === options.agencyId)
@@ -296,6 +315,19 @@ export async function getAgencyDocumentCountsForAgencies(
     return { ok: true, counts: {}, mocked: false };
   }
 
+  if (shouldUseDemoData()) {
+    return {
+      ok: true,
+      counts: getDemoAgencyDocuments().reduce<Record<string, number>>((counts, document) => {
+        if (agencyIds.includes(document.agency_id)) {
+          counts[document.agency_id] = (counts[document.agency_id] || 0) + 1;
+        }
+        return counts;
+      }, {}),
+      mocked: true,
+    };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     return {
       ok: true,
@@ -334,6 +366,14 @@ export async function getAgencyDocumentCountsForAgencies(
 }
 
 export async function getPendingAgencyDocuments(): Promise<AgencyDocumentsResult> {
+  if (shouldUseDemoData()) {
+    return {
+      ok: true,
+      documents: getDemoAgencyDocuments().filter((document) => document.review_status === "pending"),
+      mocked: true,
+    };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     return {
       ok: true,
@@ -413,6 +453,16 @@ export async function getSignedAgencyDocumentUrl(
   documentId: string,
   expiresInSeconds = 300,
 ): Promise<AgencyDocumentSignedUrlResult> {
+  if (shouldUseDemoData()) {
+    return {
+      ok: true,
+      signedUrl: "about:blank",
+      expiresInSeconds,
+      mocked: true,
+      message: `Demo document ${documentId} is a placeholder. No private file was opened.`,
+    };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     return {
       ok: false,
@@ -457,6 +507,30 @@ export async function updateAgencyDocumentReviewStatus(
   status: AgencyDocumentReviewStatus,
   adminNotes: string,
 ): Promise<AgencyDocumentMutationResult> {
+  if (shouldUseDemoData()) {
+    const document = getDemoAgencyDocuments().find((item) => item.id === documentId);
+
+    if (!document) {
+      return { ok: false, error: "Document not found." };
+    }
+
+    const nextDocument = {
+      ...document,
+      review_status: status,
+      admin_notes: adminNotes || null,
+      updated_at: new Date().toISOString(),
+    };
+    updateDemoDocument(documentId, nextDocument);
+    addDemoAdminNote("agency_document", documentId, `Agency document marked ${status}.`);
+
+    return {
+      ok: true,
+      document: nextDocument,
+      mocked: true,
+      message: `Demo document marked ${status}.`,
+    };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     const document = mockDocuments.find((item) => item.id === documentId);
 

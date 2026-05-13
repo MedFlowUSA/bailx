@@ -1,6 +1,8 @@
 import type { Agency } from "../types";
 import { getCurrentProfile } from "./auth";
 import { createNotificationEvent, type NotificationEventType } from "./notificationEvents";
+import { getDemoAdminAgencies, getDemoAdminAgencyDetail, getDemoAgencyDetail, shouldUseDemoData } from "./demoData";
+import { addDemoAdminNote, updateDemoAgency } from "./demoStore";
 import { isSupabaseConfigured, supabase } from "./supabase";
 
 export type AgencyVerificationStatus =
@@ -191,6 +193,14 @@ export async function createAgencyApplication(
 }
 
 export async function getPendingAgencies(): Promise<PendingAgenciesResult> {
+  if (shouldUseDemoData()) {
+    return {
+      ok: true,
+      agencies: getDemoAdminAgencies().filter((agency) => agency.verification_status === "pending"),
+      mocked: true,
+    };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     return {
       ok: true,
@@ -220,6 +230,15 @@ export async function getPendingAgencies(): Promise<PendingAgenciesResult> {
 }
 
 export async function getCurrentAgencyApplication(): Promise<CurrentAgencyResult> {
+  if (shouldUseDemoData()) {
+    return {
+      ok: true,
+      agency: getDemoAgencyDetail(),
+      mocked: true,
+      message: "Showing seeded demo agency profile.",
+    };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     return {
       ok: true,
@@ -263,6 +282,14 @@ export async function getCurrentAgencyApplication(): Promise<CurrentAgencyResult
 }
 
 export async function getAgencyForAdminReview(agencyId: string): Promise<AgencyDetailResult> {
+  if (shouldUseDemoData()) {
+    return {
+      ok: true,
+      agency: getDemoAdminAgencyDetail(agencyId),
+      mocked: true,
+    };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     return {
       ok: true,
@@ -297,6 +324,31 @@ export async function updateAgencyVerificationStatus(
   reviewNotes = "",
 ): Promise<AgencyMutationResult> {
   const trimmedNotes = reviewNotes.trim();
+
+  if (shouldUseDemoData()) {
+    const agency = getDemoAdminAgencyDetail(agencyId);
+
+    if (!agency) {
+      return { ok: false, error: "Agency not found." };
+    }
+
+    updateDemoAgency(agencyId, {
+      verification_status: status,
+      previous_verification_status: agency.verification_status,
+      reviewed_by_profile_id: "demo-profile-admin",
+      reviewed_at: new Date().toISOString(),
+      review_notes: trimmedNotes || null,
+    });
+
+    addDemoAdminNote("agency", agencyId, statusMessages[status]);
+
+    return {
+      ok: true,
+      id: agencyId,
+      mocked: true,
+      message: `${statusMessages[status]} Demo status updated locally.`,
+    };
+  }
 
   if (!isSupabaseConfigured || !supabase) {
     const agency = mockAgencies.find((item) => item.id === agencyId);

@@ -889,6 +889,39 @@ h2 {
   background: #f3f8ff;
 }
 
+.checklist-grid,
+.offer-review-stack {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid #e7edf4;
+  border-radius: 8px;
+  padding: 0.75rem;
+  background: #f8fbff;
+}
+
+.check-row span:last-child {
+  display: grid;
+  gap: 0.15rem;
+  font-weight: 800;
+}
+
+.check-row small {
+  color: #64748b;
+  font-weight: 700;
+}
+
+.checklist a {
+  color: #0b4f9f;
+  font-weight: 900;
+  text-decoration: underline;
+}
+
 .action-row,
 .admin-filter-grid {
   display: flex;
@@ -918,6 +951,52 @@ h2 {
   border-color: #f0c36c;
   background: #fff7e8;
   color: #624213;
+}
+
+.demo-mode-banner {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem clamp(1rem, 3vw, 2rem);
+  border-top: 1px solid #f59e0b;
+  border-bottom: 1px solid #f59e0b;
+  background: #fff7ed;
+  color: #7c2d12;
+}
+
+.demo-mode-banner > div:first-child {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.demo-mode-banner strong {
+  color: #9a3412;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.demo-mode-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.demo-mode-controls select {
+  min-height: 2.5rem;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  background: #ffffff;
+  color: #7c2d12;
+  font: inherit;
+}
+
+.demo-production-warning {
+  font-weight: 700;
+  color: #b91c1c;
 }
 
 .admin-compact-row {

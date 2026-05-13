@@ -1,5 +1,6 @@
 import type { Agency, AgencyOffer, BailRequest } from "../types";
 import { mockAgencies } from "./agencies";
+import { getDemoAdminDashboardData, shouldUseDemoData } from "./demoData";
 import { isSupabaseConfigured, supabase } from "./supabase";
 
 export type AdminDashboardSummary = {
@@ -127,6 +128,14 @@ const mockSelectedOffers: AdminSelectedOffer[] = [
 ];
 
 export async function getAdminDashboardSummary(): Promise<AdminDashboardSummaryResult> {
+  if (shouldUseDemoData()) {
+    return {
+      ok: true,
+      mocked: true,
+      summary: getDemoAdminDashboardData().summary,
+    };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     return {
       ok: true,
@@ -166,6 +175,14 @@ export async function getAdminDashboardSummary(): Promise<AdminDashboardSummaryR
 }
 
 export async function getRecentAdminBailRequests(limit = 8): Promise<AdminBailRequestsResult> {
+  if (shouldUseDemoData()) {
+    return {
+      ok: true,
+      bailRequests: getDemoAdminDashboardData().recentRequests.slice(0, limit),
+      mocked: true,
+    };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     return { ok: true, bailRequests: mockAdminRequests, mocked: true };
   }
@@ -184,6 +201,14 @@ export async function getRecentAdminBailRequests(limit = 8): Promise<AdminBailRe
 }
 
 export async function getRecentAgencyApplications(limit = 50): Promise<AdminAgenciesResult> {
+  if (shouldUseDemoData()) {
+    return {
+      ok: true,
+      agencies: getDemoAdminDashboardData().recentAgencies.slice(0, limit),
+      mocked: true,
+    };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     return { ok: true, agencies: mockAgencies, mocked: true };
   }
@@ -202,6 +227,14 @@ export async function getRecentAgencyApplications(limit = 50): Promise<AdminAgen
 }
 
 export async function getAdminMarketplaceMetrics(): Promise<AdminMarketplaceMetricsResult> {
+  if (shouldUseDemoData()) {
+    return {
+      ok: true,
+      selectedOffers: getDemoAdminDashboardData().selectedOffers,
+      mocked: true,
+    };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     return { ok: true, selectedOffers: mockSelectedOffers, mocked: true };
   }

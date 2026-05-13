@@ -6,6 +6,7 @@ import {
   getDashboardPathForRole,
   type UserRole,
 } from "../lib/auth";
+import { getDemoProfile, isDemoModeEnabled } from "../lib/demoMode";
 import { isSupabaseConfigured } from "../lib/supabase";
 import type { Profile } from "../types";
 
@@ -14,6 +15,27 @@ type ProtectedRouteProps = {
 };
 
 export function ProtectedRoute({ roles }: ProtectedRouteProps) {
+  if (isDemoModeEnabled()) {
+    const profile = getDemoProfile();
+
+    if (profile && roles.includes(profile.role)) {
+      return <Outlet />;
+    }
+
+    return (
+      <section className="page-section narrow">
+        <div className="card">
+          <p className="eyebrow">Demo role required</p>
+          <h1>Switch demo role</h1>
+          <p>This route is not available for the current demo role.</p>
+          <Link className="button primary" to={getDashboardPathForRole(profile?.role)}>
+            Go to Current Demo Dashboard
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
   if (!isSupabaseConfigured) {
     return <Outlet />;
   }

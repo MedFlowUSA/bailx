@@ -4,6 +4,11 @@ import {
   getNotificationEventsForEntity,
   type NotificationEntityType,
 } from "./notificationEvents";
+import {
+  getDemoAdminBailRequestDetail as getDemoAdminBailRequestById,
+  getDemoAdminBailRequests,
+  shouldUseDemoData,
+} from "./demoData";
 import { isSupabaseConfigured, supabase } from "./supabase";
 
 export type BailRequestsResult =
@@ -74,6 +79,14 @@ const mockBailRequests: BailRequest[] = [
 ];
 
 export async function getRecentBailRequests(): Promise<BailRequestsResult> {
+  if (shouldUseDemoData()) {
+    return {
+      ok: true,
+      bailRequests: getDemoAdminBailRequests(),
+      mocked: true,
+    };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     return {
       ok: true,
@@ -105,6 +118,14 @@ export async function getRecentBailRequests(): Promise<BailRequestsResult> {
 export async function getAdminBailRequestDetail(
   id: string,
 ): Promise<AdminBailRequestDetailResult> {
+  if (shouldUseDemoData()) {
+    return {
+      ok: true,
+      bailRequest: getDemoAdminBailRequestById(id),
+      mocked: true,
+    };
+  }
+
   if (!isSupabaseConfigured || !supabase) {
     return {
       ok: true,

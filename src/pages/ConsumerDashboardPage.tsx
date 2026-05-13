@@ -311,6 +311,22 @@ export function ConsumerDashboardPage() {
         {isLoading ? <p>Loading requests...</p> : null}
         {statusMessage ? <p className="form-message success">{statusMessage}</p> : null}
         {errorMessage ? <p className="form-message error">{errorMessage}</p> : null}
+        {activeRequest && activeRequestProgress?.missingItems.length ? (
+          <p className="form-message error">Your request packet is incomplete.</p>
+        ) : null}
+        {activeRequest && (offerCounts[activeRequest.id] || 0) === 0 ? (
+          <p className="form-message success">
+            Providers may respond after reviewing your request.
+          </p>
+        ) : null}
+        {activeRequest && (offerCounts[activeRequest.id] || 0) > 0 && !selectedOffers[activeRequest.id] ? (
+          <p className="form-message success">Compare offers carefully before selecting.</p>
+        ) : null}
+        {activeRequest && selectedOffers[activeRequest.id] ? (
+          <p className="form-message success">
+            Confirm all terms directly with your selected provider.
+          </p>
+        ) : null}
         {bailRequests.map((request) => (
           <article className="card request-portal-card" key={request.id}>
             {(() => {

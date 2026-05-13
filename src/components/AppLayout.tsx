@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet } from "react-router-dom";
+import { DemoModeBanner } from "./DemoModeBanner";
 import { getCurrentProfile } from "../lib/auth";
+import { demoModeChangedEvent, isDemoModeEnabled } from "../lib/demoMode";
 import { isSupabaseConfigured, supabase } from "../lib/supabase";
 import type { Profile } from "../types";
 
@@ -34,8 +36,9 @@ const roleNavItems: Record<Profile["role"], Array<{ to: string; label: string }>
     { to: "/admin/provider-directory", label: "Directory" },
   ],
   attorney: [
-    { to: "/attorneys", label: "Attorney Ads" },
-    { to: "/compliance", label: "Compliance" },
+    { to: "/attorney/dashboard", label: "Attorney Dashboard" },
+    { to: "/attorney/advertising", label: "Advertising" },
+    { to: "/attorney/compliance", label: "Compliance" },
   ],
 };
 
@@ -63,10 +66,15 @@ export function AppLayout() {
     const subscription = supabase?.auth.onAuthStateChange(() => {
       void loadProfile();
     });
+    const demoListener = () => void loadProfile();
+    window.addEventListener(demoModeChangedEvent, demoListener);
+    window.addEventListener("storage", demoListener);
 
     return () => {
       isMounted = false;
       subscription?.data.subscription.unsubscribe();
+      window.removeEventListener(demoModeChangedEvent, demoListener);
+      window.removeEventListener("storage", demoListener);
     };
   }, []);
 
@@ -82,6 +90,7 @@ export function AppLayout() {
               {item.label}
             </NavLink>
           ))}
+          {isDemoModeEnabled() ? <NavLink to="/demo">Demo Guide</NavLink> : null}
           {profile ? (
             <>
               {roleNavItems[profile.role].map((item) => (
@@ -102,6 +111,7 @@ export function AppLayout() {
           )}
         </nav>
       </header>
+      <DemoModeBanner />
       <main>
         <Outlet />
       </main>
