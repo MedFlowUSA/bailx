@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
+  createAdminNote,
+  getAdminNotesForEntity,
+  type AdminNoteType,
+} from "../lib/adminNotes";
+import {
   AgencyVerificationStatus,
   updateAgencyVerificationStatus,
 } from "../lib/agencies";
 import { getRecentAgencyApplications } from "../lib/adminDashboard";
-import type { Agency } from "../types";
+import type { AdminNote, Agency } from "../types";
 
 type AgencyFilter = "pending" | "approved" | "more_info_requested" | "rejected";
 
@@ -24,6 +29,10 @@ function formatReviewDate(value?: string | null) {
   return value ? new Date(value).toLocaleString() : "Not reviewed";
 }
 
+function getStatusNoteType(status: AgencyVerificationStatus): AdminNoteType {
+  return status === "approved" ? "compliance_review" : "status_change";
+}
+
 export function AdminAgenciesPage() {
   const [agencies, setAgencies] = useState<Agency[]>([]);
   const [filter, setFilter] = useState<AgencyFilter>("pending");
@@ -32,6 +41,19 @@ export function AdminAgenciesPage() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [reviewNotesByAgencyId, setReviewNotesByAgencyId] = useState<Record<string, string>>({});
+  const [adminNotesByAgencyId, setAdminNotesByAgencyId] = useState<Record<string, string>>({});
+  const [recentNotesByAgencyId, setRecentNotesByAgencyId] = useState<Record<string, AdminNote[]>>({});
+
+  async function loadAgencyNotes(nextAgencies: Agency[]) {
+    const notesEntries = await Promise.all(
+      nextAgencies.map(async (agency) => {
+        const result = await getAdminNotesForEntity("agency", agency.id);
+        return [agency.id, result.ok ? result.notes : []] as const;
+      }),
+    );
+
+    setRecentNotesByAgencyId(Object.fromEntries(notesEntries));
+  }
 
   async function loadAgencies(options: { preserveStatusMessage?: boolean } = {}) {
     setIsLoading(true);
@@ -46,6 +68,7 @@ export function AdminAgenciesPage() {
     }
 
     setAgencies(result.agencies);
+    await loadAgencyNotes(result.agencies);
     if (!options.preserveStatusMessage) {
       setStatusMessage(
         result.mocked ? "Showing mock agency applications until Supabase is configured." : null,
@@ -74,9 +97,45 @@ export function AdminAgenciesPage() {
       return;
     }
 
+    const noteResult = await createAdminNote({
+      entityType: "agency",
+      entityId: agencyId,
+      noteType: getStatusNoteType(status),
+      message: result.message,
+      metadata: {
+        status,
+        review_notes: reviewNotes || null,
+      },
+    });
+
+    if (!noteResult.ok) {
+      setErrorMessage(noteResult.error);
+    }
+
     setStatusMessage(result.message);
     setReviewNotesByAgencyId((current) => ({ ...current, [agencyId]: "" }));
     await loadAgencies({ preserveStatusMessage: true });
+  }
+
+  async function handleAdminNoteSubmit(agencyId: string) {
+    const note = adminNotesByAgencyId[agencyId]?.trim() || "";
+    const result = await createAdminNote({
+      entityType: "agency",
+      entityId: agencyId,
+      noteType: "admin_note",
+      message: note,
+    });
+
+    if (!result.ok) {
+      setErrorMessage(result.error);
+      setStatusMessage(null);
+      return;
+    }
+
+    setStatusMessage("Admin note saved.");
+    setErrorMessage(null);
+    setAdminNotesByAgencyId((current) => ({ ...current, [agencyId]: "" }));
+    await loadAgencyNotes(agencies.filter((agency) => agency.id === agencyId));
   }
 
   useEffect(() => {
@@ -201,6 +260,17 @@ export function AdminAgenciesPage() {
                     </div>
                   ) : null}
                 </dl>
+                {(recentNotesByAgencyId[agency.id] || []).length > 0 ? (
+                  <div className="admin-note-list">
+                    <p className="eyebrow">Recent admin activity</p>
+                    {(recentNotesByAgencyId[agency.id] || []).map((note) => (
+                      <div className="admin-note-row" key={note.id}>
+                        <span>{note.message || note.note}</span>
+                        <small>{new Date(note.created_at).toLocaleString()}</small>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
               </div>
               <div className="admin-actions">
                 <label className="review-notes-field">
@@ -240,6 +310,28 @@ export function AdminAgenciesPage() {
                   onClick={() => handleStatusUpdate(agency.id, "approved")}
                 >
                   Approve
+                </button>
+                <label className="review-notes-field">
+                  Admin note
+                  <textarea
+                    name={`adminNote-${agency.id}`}
+                    placeholder="Add internal note"
+                    value={adminNotesByAgencyId[agency.id] || ""}
+                    onChange={(event) =>
+                      setAdminNotesByAgencyId((current) => ({
+                        ...current,
+                        [agency.id]: event.target.value,
+                      }))
+                    }
+                  />
+                </label>
+                <button
+                  className="button secondary"
+                  type="button"
+                  disabled={isUpdatingId === agency.id}
+                  onClick={() => void handleAdminNoteSubmit(agency.id)}
+                >
+                  Save Note
                 </button>
               </div>
             </div>

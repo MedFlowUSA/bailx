@@ -1,5 +1,6 @@
 import type { Agency } from "../types";
 import { getCurrentProfile } from "./auth";
+import { createNotificationEvent, type NotificationEventType } from "./notificationEvents";
 import { isSupabaseConfigured, supabase } from "./supabase";
 
 export type AgencyVerificationStatus =
@@ -80,6 +81,13 @@ const statusMessages: Record<AgencyVerificationStatus, string> = {
   rejected: "Agency rejected.",
 };
 
+const statusNotificationEvents: Record<AgencyVerificationStatus, NotificationEventType> = {
+  approved: "agency_approved",
+  more_info_requested: "agency_more_info_requested",
+  pending: "agency_application_submitted",
+  rejected: "agency_rejected",
+};
+
 function compactList(value: string[]) {
   return value.map((item) => item.trim()).filter(Boolean);
 }
@@ -112,6 +120,19 @@ export async function createAgencyApplication(
       updated_at: now,
     };
     mockAgencies.unshift(agency);
+    await createNotificationEvent({
+      eventType: "agency_application_submitted",
+      entityType: "agency",
+      entityId: agency.id,
+      recipientPhone: input.phone,
+      recipientEmail: input.email,
+      channel: "in_app",
+      payload: {
+        business_name: input.business_name,
+        contact_name: input.contact_name,
+        subscription_tier: input.subscription_tier,
+      },
+    });
 
     return {
       ok: true,
@@ -133,6 +154,21 @@ export async function createAgencyApplication(
       error: error.message || "Unable to submit agency application.",
     };
   }
+
+  await createNotificationEvent({
+    eventType: "agency_application_submitted",
+    entityType: "agency",
+    entityId: data.id as string,
+    recipientProfileId: profile?.role === "agency" ? profile.id : null,
+    recipientPhone: input.phone,
+    recipientEmail: input.email,
+    channel: "in_app",
+    payload: {
+      business_name: input.business_name,
+      contact_name: input.contact_name,
+      subscription_tier: input.subscription_tier,
+    },
+  });
 
   return {
     ok: true,
@@ -238,6 +274,20 @@ export async function updateAgencyVerificationStatus(
     agency.reviewed_at = new Date().toISOString();
     agency.review_notes = trimmedNotes || null;
     agency.updated_at = new Date().toISOString();
+    await createNotificationEvent({
+      eventType: statusNotificationEvents[status],
+      entityType: "agency",
+      entityId: agencyId,
+      recipientProfileId: agency.owner_profile_id || null,
+      recipientPhone: agency.phone,
+      recipientEmail: agency.email,
+      channel: "in_app",
+      payload: {
+        status,
+        previous_verification_status: previousStatus,
+        review_notes: trimmedNotes || null,
+      },
+    });
 
     return {
       ok: true,
@@ -250,7 +300,7 @@ export async function updateAgencyVerificationStatus(
   const profile = await getCurrentProfile();
   const { data: existingAgency, error: lookupError } = await supabase
     .from("agencies")
-    .select("verification_status")
+    .select("verification_status,owner_profile_id,phone,email")
     .eq("id", agencyId)
     .maybeSingle();
 
@@ -278,6 +328,21 @@ export async function updateAgencyVerificationStatus(
       error: error.message || "Unable to update agency status.",
     };
   }
+
+  await createNotificationEvent({
+    eventType: statusNotificationEvents[status],
+    entityType: "agency",
+    entityId: agencyId,
+    recipientProfileId: existingAgency?.owner_profile_id || null,
+    recipientPhone: existingAgency?.phone || null,
+    recipientEmail: existingAgency?.email || null,
+    channel: "in_app",
+    payload: {
+      status,
+      previous_verification_status: existingAgency?.verification_status || null,
+      review_notes: trimmedNotes || null,
+    },
+  });
 
   return {
     ok: true,

@@ -21,6 +21,11 @@ const AdminBailRequestsPage = lazy(() =>
 const AdminDashboardPage = lazy(() =>
   import("../pages/AdminDashboardPage").then((module) => ({ default: module.AdminDashboardPage })),
 );
+const AdminNotificationsPage = lazy(() =>
+  import("../pages/AdminNotificationsPage").then((module) => ({
+    default: module.AdminNotificationsPage,
+  })),
+);
 const AttorneysPage = lazy(() =>
   import("../pages/AttorneysPage").then((module) => ({ default: module.AttorneysPage })),
 );
@@ -118,6 +123,7 @@ export const router = createBrowserRouter([
             element: lazyPage(<AdminAgencyDocumentsPage />),
           },
           { path: "/admin/bail-requests", element: lazyPage(<AdminBailRequestsPage />) },
+          { path: "/admin/notifications", element: lazyPage(<AdminNotificationsPage />) },
         ],
       },
       { path: "*", element: lazyPage(<NotFoundPage />) },

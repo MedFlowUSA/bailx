@@ -204,6 +204,33 @@ competing offer decline, and request status update happen atomically.
 5. Test Request More Info with notes.
 6. Test Reject with notes.
 
+## Admin Activity Log QA
+
+1. Sign in as admin.
+2. Add an admin note to an agency.
+3. Change the agency status and confirm an automatic activity note appears.
+4. Add an admin note to a bail request.
+5. Review an agency document and confirm a document activity note is created.
+6. Confirm recent activity appears on the admin dashboard.
+
+## Notification Events QA
+
+1. Submit a bail request and confirm a `bail_request_submitted` row appears in
+   `notification_events`.
+2. Submit an agency offer and confirm an `agency_offer_submitted` event.
+3. Select a provider and confirm a `provider_selected` event.
+4. Change agency status and confirm the matching agency status event:
+   `agency_approved`, `agency_more_info_requested`, or `agency_rejected`.
+5. Upload and review an agency document and confirm
+   `agency_document_uploaded` and `agency_document_reviewed` events.
+6. Open `/admin/notifications` and confirm events display with status, channel,
+   recipient fields, and payload preview.
+7. Confirm recent notification events appear on `/admin/dashboard`.
+
+`agency_matched_to_request` is supported by the notification event schema but
+should be emitted later by an explicit lead dispatch job to avoid duplicate
+events from read-only agency lead queries.
+
 ## Status Timeline Test
 
 1. Submit a request from `/get-help-now`.

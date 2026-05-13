@@ -1,5 +1,6 @@
 import type { AgencyDocument } from "../types";
 import { getCurrentProfile } from "./auth";
+import { createNotificationEvent } from "./notificationEvents";
 import { isSupabaseConfigured, supabase } from "./supabase";
 
 export type AgencyDocumentType =
@@ -89,6 +90,18 @@ export async function uploadAgencyDocument(
     };
 
     mockDocuments.unshift(document);
+    await createNotificationEvent({
+      eventType: "agency_document_uploaded",
+      entityType: "agency_document",
+      entityId: document.id,
+      recipientProfileId: document.uploaded_by_profile_id || null,
+      channel: "in_app",
+      payload: {
+        agency_id: input.agencyId,
+        document_type: input.documentType,
+        file_name: input.file.name,
+      },
+    });
 
     return {
       ok: true,
@@ -143,6 +156,19 @@ export async function uploadAgencyDocument(
       error: error.message || "Document uploaded, but metadata was not saved.",
     };
   }
+
+  await createNotificationEvent({
+    eventType: "agency_document_uploaded",
+    entityType: "agency_document",
+    entityId: data.id as string,
+    recipientProfileId: profile.id,
+    channel: "in_app",
+    payload: {
+      agency_id: input.agencyId,
+      document_type: input.documentType,
+      file_name: input.file.name,
+    },
+  });
 
   return {
     ok: true,
@@ -230,6 +256,18 @@ export async function updateAgencyDocumentReviewStatus(
     document.review_status = status;
     document.admin_notes = adminNotes || null;
     document.updated_at = new Date().toISOString();
+    await createNotificationEvent({
+      eventType: "agency_document_reviewed",
+      entityType: "agency_document",
+      entityId: documentId,
+      recipientProfileId: document.uploaded_by_profile_id || null,
+      channel: "in_app",
+      payload: {
+        agency_id: document.agency_id,
+        status,
+        admin_notes: adminNotes || null,
+      },
+    });
 
     return {
       ok: true,
@@ -255,6 +293,19 @@ export async function updateAgencyDocumentReviewStatus(
       error: error.message || "Unable to update document review status.",
     };
   }
+
+  await createNotificationEvent({
+    eventType: "agency_document_reviewed",
+    entityType: "agency_document",
+    entityId: documentId,
+    recipientProfileId: data.uploaded_by_profile_id || null,
+    channel: "in_app",
+    payload: {
+      agency_id: data.agency_id,
+      status,
+      admin_notes: adminNotes || null,
+    },
+  });
 
   return {
     ok: true,

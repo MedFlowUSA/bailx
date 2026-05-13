@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { getCurrentProfile, getDashboardPathForRole } from "../lib/auth";
-import { supabase } from "../lib/supabase";
+import { isSupabaseConfigured, supabase } from "../lib/supabase";
 import type { Profile } from "../types";
 
 const navItems = [
@@ -57,12 +57,18 @@ export function AppLayout() {
             <>
               <NavLink to={getDashboardPathForRole(profile.role)}>Dashboard</NavLink>
               {profile.role === "admin" ? (
-                <NavLink to="/admin/agency-documents">Agency Documents</NavLink>
+                <>
+                  <NavLink to="/admin/agency-documents">Agency Documents</NavLink>
+                  <NavLink to="/admin/notifications">Notifications</NavLink>
+                </>
               ) : null}
               <NavLink to="/auth/sign-out">Sign Out</NavLink>
             </>
           ) : (
             <>
+              {!isSupabaseConfigured ? (
+                <NavLink to="/admin/notifications">Notifications</NavLink>
+              ) : null}
               <NavLink to="/auth/sign-in">Sign In</NavLink>
               <NavLink to="/auth/sign-up">Sign Up</NavLink>
             </>

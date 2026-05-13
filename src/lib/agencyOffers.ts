@@ -1,6 +1,7 @@
 import type { AgencyOffer } from "../types";
 import { getCurrentProfile } from "./auth";
 import { updateMockConsumerRequestStatus } from "./consumerRequests";
+import { createNotificationEvent } from "./notificationEvents";
 import { isSupabaseConfigured, supabase } from "./supabase";
 
 export type CreateAgencyOfferInput = {
@@ -121,6 +122,17 @@ export async function createAgencyOffer(
     };
     mockOffers.unshift(offer);
     updateMockConsumerRequestStatus(input.bail_request_id, "offers_received");
+    await createNotificationEvent({
+      eventType: "agency_offer_submitted",
+      entityType: "agency_offer",
+      entityId: offer.id,
+      channel: "in_app",
+      payload: {
+        agency_id: agencyId,
+        bail_request_id: input.bail_request_id,
+        down_payment: input.down_payment,
+      },
+    });
 
     return {
       ok: true,
@@ -142,6 +154,18 @@ export async function createAgencyOffer(
       error: error.message || "Unable to submit offer.",
     };
   }
+
+  await createNotificationEvent({
+    eventType: "agency_offer_submitted",
+    entityType: "agency_offer",
+    entityId: data.id as string,
+    channel: "in_app",
+    payload: {
+      agency_id: agencyId,
+      bail_request_id: input.bail_request_id,
+      down_payment: input.down_payment,
+    },
+  });
 
   const { error: statusError } = await supabase
     .from("bail_requests")
@@ -325,6 +349,16 @@ export async function selectAgencyOffer(
       offer.status = offer.id === offerId ? "selected" : "declined";
       offer.updated_at = new Date().toISOString();
     });
+    await createNotificationEvent({
+      eventType: "provider_selected",
+      entityType: "agency_offer",
+      entityId: offerId,
+      channel: "in_app",
+      payload: {
+        bail_request_id: bailRequestId,
+        offer_id: offerId,
+      },
+    });
 
     return {
       ok: true,
@@ -344,6 +378,17 @@ export async function selectAgencyOffer(
       error: error.message || "Unable to select provider.",
     };
   }
+
+  await createNotificationEvent({
+    eventType: "provider_selected",
+    entityType: "agency_offer",
+    entityId: String((data as { offer_id?: string } | null)?.offer_id || offerId),
+    channel: "in_app",
+    payload: {
+      bail_request_id: bailRequestId,
+      offer_id: String((data as { offer_id?: string } | null)?.offer_id || offerId),
+    },
+  });
 
   return {
     ok: true,

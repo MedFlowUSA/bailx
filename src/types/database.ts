@@ -125,12 +125,50 @@ export type AttorneyAd = {
 
 export type AdminNote = {
   id: string;
+  entity_type?: "agency" | "bail_request" | "agency_document" | "agency_offer" | "system";
+  entity_id?: string | null;
+  note_type?:
+    | "admin_note"
+    | "status_change"
+    | "document_review"
+    | "provider_selection"
+    | "compliance_review"
+    | "system_event";
+  message?: string;
+  created_by_profile_id?: string | null;
+  metadata?: Record<string, unknown>;
   related_table?: string;
-  related_id?: string;
+  related_id?: string | null;
   note: string;
-  created_by?: string;
+  created_by?: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type NotificationEvent = {
+  id: string;
+  event_type:
+    | "bail_request_submitted"
+    | "agency_matched_to_request"
+    | "agency_offer_submitted"
+    | "provider_selected"
+    | "agency_application_submitted"
+    | "agency_approved"
+    | "agency_more_info_requested"
+    | "agency_rejected"
+    | "agency_document_uploaded"
+    | "agency_document_reviewed";
+  entity_type: "agency" | "bail_request" | "agency_document" | "agency_offer" | "system";
+  entity_id: string;
+  recipient_profile_id?: string | null;
+  recipient_phone?: string | null;
+  recipient_email?: string | null;
+  channel: "sms" | "email" | "in_app";
+  status: "pending" | "processed" | "failed" | "skipped";
+  payload: Record<string, unknown>;
+  error_message?: string | null;
+  created_at: string;
+  processed_at?: string | null;
 };
 
 export type BailXTables = {
@@ -143,4 +181,5 @@ export type BailXTables = {
   subscriptions: Subscription;
   attorney_ads: AttorneyAd;
   admin_notes: AdminNote;
+  notification_events: NotificationEvent;
 };

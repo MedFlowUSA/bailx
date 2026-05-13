@@ -6,8 +6,9 @@ import {
   getSelectedOffersForBailRequests,
 } from "../lib/agencyOffers";
 import { getRecentAdminBailRequests } from "../lib/adminDashboard";
+import { createAdminNote, getAdminNotesForEntity } from "../lib/adminNotes";
 import { getRequestStatusLabel } from "../lib/requestStatus";
-import type { AgencyOffer, BailRequest } from "../types";
+import type { AdminNote, AgencyOffer, BailRequest } from "../types";
 
 type RequestFilter = "all" | "submitted" | "offers_received" | "provider_selected" | "closed";
 
@@ -39,6 +40,19 @@ export function AdminBailRequestsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [noteDraftsByRequestId, setNoteDraftsByRequestId] = useState<Record<string, string>>({});
+  const [recentNotesByRequestId, setRecentNotesByRequestId] = useState<Record<string, AdminNote[]>>({});
+
+  async function loadRequestNotes(nextRequests: BailRequest[]) {
+    const notesEntries = await Promise.all(
+      nextRequests.map(async (request) => {
+        const result = await getAdminNotesForEntity("bail_request", request.id);
+        return [request.id, result.ok ? result.notes : []] as const;
+      }),
+    );
+
+    setRecentNotesByRequestId(Object.fromEntries(notesEntries));
+  }
 
   async function loadBailRequests() {
     setIsLoading(true);
@@ -53,6 +67,7 @@ export function AdminBailRequestsPage() {
     }
 
     setBailRequests(result.bailRequests);
+    await loadRequestNotes(result.bailRequests);
     setStatusMessage(
       result.mocked ? "Showing mock bail requests until Supabase is configured." : null,
     );
@@ -72,6 +87,26 @@ export function AdminBailRequestsPage() {
     if (selectedResult.ok) {
       setSelectedOffers(selectedResult.selectedOffers);
     }
+  }
+
+  async function handleAdminNoteSubmit(requestId: string) {
+    const result = await createAdminNote({
+      entityType: "bail_request",
+      entityId: requestId,
+      noteType: "admin_note",
+      message: noteDraftsByRequestId[requestId] || "",
+    });
+
+    if (!result.ok) {
+      setErrorMessage(result.error);
+      setStatusMessage(null);
+      return;
+    }
+
+    setStatusMessage("Admin note saved.");
+    setErrorMessage(null);
+    setNoteDraftsByRequestId((current) => ({ ...current, [requestId]: "" }));
+    await loadRequestNotes(bailRequests.filter((request) => request.id === requestId));
   }
 
   useEffect(() => {
@@ -185,7 +220,39 @@ export function AdminBailRequestsPage() {
             </dl>
 
             <RequestStatusTimeline status={request.status} compact />
+            {(recentNotesByRequestId[request.id] || []).length > 0 ? (
+              <div className="admin-note-list">
+                <p className="eyebrow">Recent admin activity</p>
+                {(recentNotesByRequestId[request.id] || []).map((note) => (
+                  <div className="admin-note-row" key={note.id}>
+                    <span>{note.message || note.note}</span>
+                    <small>{new Date(note.created_at).toLocaleString()}</small>
+                  </div>
+                ))}
+              </div>
+            ) : null}
             <div className="admin-actions">
+              <label className="review-notes-field">
+                Admin note
+                <textarea
+                  name={`adminNote-${request.id}`}
+                  placeholder="Add internal request note"
+                  value={noteDraftsByRequestId[request.id] || ""}
+                  onChange={(event) =>
+                    setNoteDraftsByRequestId((current) => ({
+                      ...current,
+                      [request.id]: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+              <button
+                className="button secondary"
+                type="button"
+                onClick={() => void handleAdminNoteSubmit(request.id)}
+              >
+                Save Note
+              </button>
               <Link className="button secondary" to={`/consumer/requests/${request.id}`}>
                 View Offers
               </Link>

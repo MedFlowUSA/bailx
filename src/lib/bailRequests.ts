@@ -1,4 +1,5 @@
 import { getCurrentProfile } from "./auth";
+import { createNotificationEvent } from "./notificationEvents";
 import { isSupabaseConfigured, supabase } from "./supabase";
 
 export type CreateBailRequestInput = {
@@ -35,9 +36,24 @@ export async function createBailRequest(
   input: CreateBailRequestInput,
 ): Promise<CreateBailRequestResult> {
   if (!isSupabaseConfigured || !supabase) {
+    const id = `mock-${Date.now()}`;
+    await createNotificationEvent({
+      eventType: "bail_request_submitted",
+      entityType: "bail_request",
+      entityId: id,
+      recipientPhone: input.requester_phone,
+      recipientEmail: input.requester_email,
+      channel: "in_app",
+      payload: {
+        requester_name: input.requester_name,
+        defendant_name: input.defendant_name,
+        jail_county: input.jail_county || null,
+      },
+    });
+
     return {
       ok: true,
-      id: `mock-${Date.now()}`,
+      id,
       mocked: true,
       message: "Request captured locally. Configure Supabase to save real records.",
     };
@@ -75,6 +91,22 @@ export async function createBailRequest(
       error: error.message || "Unable to submit bail request.",
     };
   }
+
+  await createNotificationEvent({
+    eventType: "bail_request_submitted",
+    entityType: "bail_request",
+    entityId: requestId,
+    recipientProfileId: profile?.role === "consumer" ? profile.id : null,
+    recipientPhone: input.requester_phone,
+    recipientEmail: input.requester_email,
+    channel: "in_app",
+    payload: {
+      requester_name: input.requester_name,
+      defendant_name: input.defendant_name,
+      jail_county: input.jail_county || null,
+      urgency_level: input.urgency_level,
+    },
+  });
 
   return {
     ok: true,

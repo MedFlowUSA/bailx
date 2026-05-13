@@ -4,6 +4,7 @@ import {
   updateAgencyDocumentReviewStatus,
   type AgencyDocumentReviewStatus,
 } from "../lib/agencyDocuments";
+import { createAdminNote } from "../lib/adminNotes";
 import type { AgencyDocument } from "../types";
 
 function formatFileSize(value?: number | null) {
@@ -25,7 +26,7 @@ export function AdminAgencyDocumentsPage() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  async function loadDocuments() {
+  async function loadDocuments(options: { preserveStatusMessage?: boolean } = {}) {
     setIsLoading(true);
     setErrorMessage(null);
 
@@ -38,9 +39,11 @@ export function AdminAgencyDocumentsPage() {
     }
 
     setDocuments(result.documents);
-    setStatusMessage(
-      result.mocked ? "Showing mock pending agency documents until Supabase is configured." : null,
-    );
+    if (!options.preserveStatusMessage) {
+      setStatusMessage(
+        result.mocked ? "Showing mock pending agency documents until Supabase is configured." : null,
+      );
+    }
   }
 
   useEffect(() => {
@@ -53,6 +56,7 @@ export function AdminAgencyDocumentsPage() {
     status: AgencyDocumentReviewStatus,
   ) {
     const formData = new FormData(form);
+    const adminNotes = String(formData.get("adminNotes") || "");
 
     setUpdatingId(documentId);
     setErrorMessage(null);
@@ -61,7 +65,7 @@ export function AdminAgencyDocumentsPage() {
     const result = await updateAgencyDocumentReviewStatus(
       documentId,
       status,
-      String(formData.get("adminNotes") || ""),
+      adminNotes,
     );
 
     setUpdatingId(null);
@@ -71,8 +75,25 @@ export function AdminAgencyDocumentsPage() {
       return;
     }
 
+    const noteResult = await createAdminNote({
+      entityType: "agency_document",
+      entityId: documentId,
+      noteType: "document_review",
+      message: `Agency document marked ${status}.`,
+      metadata: {
+        document_id: documentId,
+        status,
+        admin_notes: adminNotes || null,
+        agency_id: result.document.agency_id,
+      },
+    });
+
+    if (!noteResult.ok) {
+      setErrorMessage(noteResult.error);
+    }
+
     setStatusMessage(result.message);
-    await loadDocuments();
+    await loadDocuments({ preserveStatusMessage: true });
   }
 
   return (
@@ -82,7 +103,7 @@ export function AdminAgencyDocumentsPage() {
           <p className="eyebrow">Admin</p>
           <h1>Agency Documents</h1>
         </div>
-        <button className="button secondary" type="button" onClick={loadDocuments}>
+        <button className="button secondary" type="button" onClick={() => void loadDocuments()}>
           Refresh
         </button>
       </div>

@@ -6,6 +6,7 @@ export type {
   AttorneyAd,
   BailXTables,
   BailRequest,
+  NotificationEvent,
   Profile,
   Review,
   Subscription,

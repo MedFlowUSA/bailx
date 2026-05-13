@@ -135,6 +135,9 @@ async function getLeadsForAgency(
   approvedAgency: Agency,
   usedDevelopmentFallback: boolean,
 ): Promise<AgencyLeadsResult> {
+  // TODO: create agency_matched_to_request notification events when BailX adds
+  // an explicit lead dispatch/notification job. This read-only query can be
+  // opened repeatedly, so emitting events here would create duplicates.
   if (!supabase) {
     return {
       ok: false,

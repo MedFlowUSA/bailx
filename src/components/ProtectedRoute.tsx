@@ -6,6 +6,7 @@ import {
   getDashboardPathForRole,
   type UserRole,
 } from "../lib/auth";
+import { isSupabaseConfigured } from "../lib/supabase";
 import type { Profile } from "../types";
 
 type ProtectedRouteProps = {
@@ -13,6 +14,10 @@ type ProtectedRouteProps = {
 };
 
 export function ProtectedRoute({ roles }: ProtectedRouteProps) {
+  if (!isSupabaseConfigured) {
+    return <Outlet />;
+  }
+
   const [profile, setProfile] = useState<Profile | null>(null);
   const [hasSession, setHasSession] = useState(false);
   const [isLoading, setIsLoading] = useState(true);

@@ -597,6 +597,44 @@ h2 {
   min-height: 5.5rem;
 }
 
+.admin-note-list {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.9rem;
+}
+
+.admin-note-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-top: 1px solid #e7edf4;
+  padding-top: 0.65rem;
+}
+
+.admin-note-row span {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.admin-note-row small {
+  color: #64748b;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.payload-preview {
+  overflow: auto;
+  border: 1px solid #e7edf4;
+  border-radius: 8px;
+  margin: 1rem 0 0;
+  max-height: 12rem;
+  padding: 0.75rem;
+  background: #f8fbff;
+  color: #314054;
+  font-size: 0.82rem;
+}
+
 .lead-list {
   display: grid;
   gap: 1rem;
