@@ -62,33 +62,40 @@ function createMockEvent(input: CreateNotificationEventInput): NotificationEvent
 export async function createNotificationEvent(
   input: CreateNotificationEventInput,
 ): Promise<NotificationEventMutationResult> {
-  if (!isSupabaseConfigured || !supabase) {
-    const event = createMockEvent(input);
-    mockNotificationEvents.unshift(event);
-    return { ok: true, event, mocked: true };
+  try {
+    if (!isSupabaseConfigured || !supabase) {
+      const event = createMockEvent(input);
+      mockNotificationEvents.unshift(event);
+      return { ok: true, event, mocked: true };
+    }
+
+    const { data, error } = await supabase
+      .from("notification_events")
+      .insert({
+        event_type: input.eventType,
+        entity_type: input.entityType,
+        entity_id: input.entityId,
+        recipient_profile_id: input.recipientProfileId || null,
+        recipient_phone: input.recipientPhone || null,
+        recipient_email: input.recipientEmail || null,
+        channel: input.channel || "in_app",
+        status: "pending",
+        payload: input.payload || {},
+      })
+      .select("*")
+      .single();
+
+    if (error) {
+      return { ok: false, error: error.message || "Unable to create notification event." };
+    }
+
+    return { ok: true, event: data as NotificationEvent, mocked: false };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Unable to create notification event.",
+    };
   }
-
-  const { data, error } = await supabase
-    .from("notification_events")
-    .insert({
-      event_type: input.eventType,
-      entity_type: input.entityType,
-      entity_id: input.entityId,
-      recipient_profile_id: input.recipientProfileId || null,
-      recipient_phone: input.recipientPhone || null,
-      recipient_email: input.recipientEmail || null,
-      channel: input.channel || "in_app",
-      status: "pending",
-      payload: input.payload || {},
-    })
-    .select("*")
-    .single();
-
-  if (error) {
-    return { ok: false, error: error.message || "Unable to create notification event." };
-  }
-
-  return { ok: true, event: data as NotificationEvent, mocked: false };
 }
 
 export async function getRecentNotificationEvents(limit = 10): Promise<NotificationEventsResult> {
@@ -99,6 +106,36 @@ export async function getRecentNotificationEvents(limit = 10): Promise<Notificat
   const { data, error } = await supabase
     .from("notification_events")
     .select("*")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    return { ok: false, error: error.message || "Unable to load notification events." };
+  }
+
+  return { ok: true, events: (data || []) as NotificationEvent[], mocked: false };
+}
+
+export async function getNotificationEventsForEntity(
+  entityType: NotificationEntityType,
+  entityId: string,
+  limit = 8,
+): Promise<NotificationEventsResult> {
+  if (!isSupabaseConfigured || !supabase) {
+    return {
+      ok: true,
+      events: mockNotificationEvents
+        .filter((event) => event.entity_type === entityType && event.entity_id === entityId)
+        .slice(0, limit),
+      mocked: true,
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("notification_events")
+    .select("*")
+    .eq("entity_type", entityType)
+    .eq("entity_id", entityId)
     .order("created_at", { ascending: false })
     .limit(limit);
 

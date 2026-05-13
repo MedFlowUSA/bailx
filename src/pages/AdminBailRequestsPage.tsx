@@ -253,8 +253,8 @@ export function AdminBailRequestsPage() {
               >
                 Save Note
               </button>
-              <Link className="button secondary" to={`/consumer/requests/${request.id}`}>
-                View Offers
+              <Link className="button secondary" to={`/admin/bail-requests/${request.id}`}>
+                View Details
               </Link>
             </div>
           </article>

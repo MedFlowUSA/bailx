@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+  createAdminAgencyDocumentSignedUrl,
   getPendingAgencyDocuments,
   updateAgencyDocumentReviewStatus,
   type AgencyDocumentReviewStatus,
@@ -23,6 +24,8 @@ export function AdminAgencyDocumentsPage() {
   const [documents, setDocuments] = useState<AgencyDocument[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [viewingId, setViewingId] = useState<string | null>(null);
+  const [secureLinks, setSecureLinks] = useState<Record<string, string>>({});
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -96,6 +99,45 @@ export function AdminAgencyDocumentsPage() {
     await loadDocuments({ preserveStatusMessage: true });
   }
 
+  async function handleCreateSecureLink(document: AgencyDocument) {
+    setViewingId(document.id);
+    setErrorMessage(null);
+    setStatusMessage(null);
+
+    const result = await createAdminAgencyDocumentSignedUrl(document);
+    setViewingId(null);
+
+    if (!result.ok) {
+      setErrorMessage(result.error);
+      return;
+    }
+
+    setSecureLinks((current) => ({
+      ...current,
+      [document.id]: result.signedUrl,
+    }));
+
+    const noteResult = await createAdminNote({
+      entityType: "agency_document",
+      entityId: document.id,
+      noteType: "document_review",
+      message: "Agency document secure view link generated.",
+      metadata: {
+        document_id: document.id,
+        agency_id: document.agency_id,
+        expires_in_seconds: result.expiresInSeconds,
+        action: "signed_url_generated",
+      },
+    });
+
+    if (!noteResult.ok) {
+      setErrorMessage(noteResult.error);
+      return;
+    }
+
+    setStatusMessage(result.message);
+  }
+
   return (
     <section className="page-section">
       <div className="page-heading-row">
@@ -153,6 +195,38 @@ export function AdminAgencyDocumentsPage() {
                     <dd>{document.admin_notes || "No notes yet"}</dd>
                   </div>
                 </dl>
+                <div className="admin-actions">
+                  <button
+                    className="button secondary"
+                    type="button"
+                    disabled={viewingId === document.id}
+                    onClick={() => void handleCreateSecureLink(document)}
+                  >
+                    {viewingId === document.id ? "Preparing..." : "Generate Secure Link"}
+                  </button>
+                  {secureLinks[document.id] ? (
+                    <>
+                      <a
+                        className="button secondary"
+                        href={secureLinks[document.id]}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        View Document
+                      </a>
+                      <a
+                        className="button secondary"
+                        href={secureLinks[document.id]}
+                        download={document.file_name || true}
+                      >
+                        Download
+                      </a>
+                      <p className="form-message">
+                        Link expires shortly. Generate a new link when needed.
+                      </p>
+                    </>
+                  ) : null}
+                </div>
               </div>
               <form className="admin-actions" onSubmit={(event) => event.preventDefault()}>
                 <label>

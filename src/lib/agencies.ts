@@ -129,7 +129,6 @@ export async function createAgencyApplication(
       channel: "in_app",
       payload: {
         business_name: input.business_name,
-        contact_name: input.contact_name,
         subscription_tier: input.subscription_tier,
       },
     });
@@ -165,7 +164,6 @@ export async function createAgencyApplication(
     channel: "in_app",
     payload: {
       business_name: input.business_name,
-      contact_name: input.contact_name,
       subscription_tier: input.subscription_tier,
     },
   });
@@ -285,7 +283,7 @@ export async function updateAgencyVerificationStatus(
       payload: {
         status,
         previous_verification_status: previousStatus,
-        review_notes: trimmedNotes || null,
+        has_review_notes: Boolean(trimmedNotes),
       },
     });
 
@@ -340,7 +338,7 @@ export async function updateAgencyVerificationStatus(
     payload: {
       status,
       previous_verification_status: existingAgency?.verification_status || null,
-      review_notes: trimmedNotes || null,
+      has_review_notes: Boolean(trimmedNotes),
     },
   });
 

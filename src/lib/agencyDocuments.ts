@@ -44,6 +44,19 @@ export type AgencyDocumentsResult =
       error: string;
     };
 
+export type AgencyDocumentSignedUrlResult =
+  | {
+      ok: true;
+      signedUrl: string;
+      expiresInSeconds: number;
+      mocked: boolean;
+      message: string;
+    }
+  | {
+      ok: false;
+      error: string;
+    };
+
 const mockDocuments: AgencyDocument[] = [];
 
 function safeFileName(name: string) {
@@ -99,7 +112,6 @@ export async function uploadAgencyDocument(
       payload: {
         agency_id: input.agencyId,
         document_type: input.documentType,
-        file_name: input.file.name,
       },
     });
 
@@ -166,7 +178,6 @@ export async function uploadAgencyDocument(
     payload: {
       agency_id: input.agencyId,
       document_type: input.documentType,
-      file_name: input.file.name,
     },
   });
 
@@ -238,6 +249,53 @@ export async function getPendingAgencyDocuments(): Promise<AgencyDocumentsResult
   };
 }
 
+export async function createAdminAgencyDocumentSignedUrl(
+  document: AgencyDocument,
+  expiresInSeconds = 300,
+): Promise<AgencyDocumentSignedUrlResult> {
+  if (!document.file_path) {
+    return {
+      ok: false,
+      error: "This document does not have a stored file path.",
+    };
+  }
+
+  if (!isSupabaseConfigured || !supabase) {
+    return {
+      ok: false,
+      error: "Signed document viewing requires Supabase Storage.",
+    };
+  }
+
+  const profile = await getCurrentProfile();
+
+  if (profile?.role !== "admin") {
+    return {
+      ok: false,
+      error: "Only admins can view agency verification documents.",
+    };
+  }
+
+  const { data, error } = await supabase.storage
+    .from("agency-documents")
+    .createSignedUrl(document.file_path, expiresInSeconds);
+
+  if (error || !data?.signedUrl) {
+    return {
+      ok: false,
+      error: error?.message || "Unable to create a secure document link.",
+    };
+  }
+
+  return {
+    ok: true,
+    signedUrl: data.signedUrl,
+    expiresInSeconds,
+    mocked: false,
+    message: "Secure document link generated.",
+  };
+}
+
 export async function updateAgencyDocumentReviewStatus(
   documentId: string,
   status: AgencyDocumentReviewStatus,
@@ -265,7 +323,7 @@ export async function updateAgencyDocumentReviewStatus(
       payload: {
         agency_id: document.agency_id,
         status,
-        admin_notes: adminNotes || null,
+        has_admin_notes: Boolean(adminNotes),
       },
     });
 
@@ -303,7 +361,7 @@ export async function updateAgencyDocumentReviewStatus(
     payload: {
       agency_id: data.agency_id,
       status,
-      admin_notes: adminNotes || null,
+      has_admin_notes: Boolean(adminNotes),
     },
   });
 

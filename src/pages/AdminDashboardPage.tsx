@@ -36,6 +36,7 @@ export function AdminDashboardPage() {
   const [recentSelections, setRecentSelections] = useState<AdminSelectedOffer[]>([]);
   const [recentAdminNotes, setRecentAdminNotes] = useState<AdminNote[]>([]);
   const [recentNotificationEvents, setRecentNotificationEvents] = useState<NotificationEvent[]>([]);
+  const [notificationEventsError, setNotificationEventsError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -44,6 +45,7 @@ export function AdminDashboardPage() {
     setIsLoading(true);
     setErrorMessage(null);
     setStatusMessage(null);
+    setNotificationEventsError(null);
 
     const [
       summaryResult,
@@ -69,7 +71,6 @@ export function AdminDashboardPage() {
       agenciesResult,
       metricsResult,
       notesResult,
-      notificationEventsResult,
     ].find((result) => !result.ok);
 
     if (failedResult && !failedResult.ok) {
@@ -99,6 +100,9 @@ export function AdminDashboardPage() {
 
     if (notificationEventsResult.ok) {
       setRecentNotificationEvents(notificationEventsResult.events);
+    } else {
+      setRecentNotificationEvents([]);
+      setNotificationEventsError(notificationEventsResult.error);
     }
 
     if (
@@ -192,6 +196,9 @@ export function AdminDashboardPage() {
             </Link>
           </div>
           <div className="compact-admin-list">
+            {notificationEventsError ? (
+              <p className="form-message error">{notificationEventsError}</p>
+            ) : null}
             {recentNotificationEvents.length === 0 ? <p>No notification events found.</p> : null}
             {recentNotificationEvents.map((event) => (
               <Link className="admin-compact-row" key={event.id} to="/admin/notifications">

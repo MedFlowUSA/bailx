@@ -45,9 +45,8 @@ export async function createBailRequest(
       recipientEmail: input.requester_email,
       channel: "in_app",
       payload: {
-        requester_name: input.requester_name,
-        defendant_name: input.defendant_name,
         jail_county: input.jail_county || null,
+        urgency_level: input.urgency_level,
       },
     });
 
@@ -101,8 +100,6 @@ export async function createBailRequest(
     recipientEmail: input.requester_email,
     channel: "in_app",
     payload: {
-      requester_name: input.requester_name,
-      defendant_name: input.defendant_name,
       jail_county: input.jail_county || null,
       urgency_level: input.urgency_level,
     },

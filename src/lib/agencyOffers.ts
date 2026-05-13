@@ -130,7 +130,6 @@ export async function createAgencyOffer(
       payload: {
         agency_id: agencyId,
         bail_request_id: input.bail_request_id,
-        down_payment: input.down_payment,
       },
     });
 
@@ -163,7 +162,6 @@ export async function createAgencyOffer(
     payload: {
       agency_id: agencyId,
       bail_request_id: input.bail_request_id,
-      down_payment: input.down_payment,
     },
   });
 

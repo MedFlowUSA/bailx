@@ -1,4 +1,9 @@
-import type { BailRequest } from "../types";
+import type { AgencyOffer, BailRequest, NotificationEvent } from "../types";
+import { getOffersForBailRequest } from "./agencyOffers";
+import {
+  getNotificationEventsForEntity,
+  type NotificationEntityType,
+} from "./notificationEvents";
 import { isSupabaseConfigured, supabase } from "./supabase";
 
 export type BailRequestsResult =
@@ -12,14 +17,50 @@ export type BailRequestsResult =
       error: string;
     };
 
+export type AdminBailRequestDetailResult =
+  | {
+      ok: true;
+      bailRequest: BailRequest | null;
+      mocked: boolean;
+    }
+  | {
+      ok: false;
+      error: string;
+    };
+
+export type AdminBailRequestOffersResult =
+  | {
+      ok: true;
+      offers: AgencyOffer[];
+      mocked: boolean;
+    }
+  | {
+      ok: false;
+      error: string;
+    };
+
+export type AdminNotificationEventsResult =
+  | {
+      ok: true;
+      events: NotificationEvent[];
+      mocked: boolean;
+    }
+  | {
+      ok: false;
+      error: string;
+    };
+
 const mockBailRequests: BailRequest[] = [
   {
-    id: "mock-request-1",
+    id: "mock-admin-request-1",
     requester_name: "Jamie R.",
     requester_phone: "(555) 210-0192",
     requester_email: "jamie@example.com",
     defendant_name: "Taylor R.",
-    jail_location: "Los Angeles County",
+    jail_location: "Los Angeles County Jail",
+    jail_city: "Los Angeles",
+    jail_county: "Los Angeles",
+    jail_state: "CA",
     bond_amount: 25000,
     charges: "Pending",
     urgency_level: "urgent",
@@ -59,4 +100,60 @@ export async function getRecentBailRequests(): Promise<BailRequestsResult> {
     bailRequests: (data || []) as BailRequest[],
     mocked: false,
   };
+}
+
+export async function getAdminBailRequestDetail(
+  id: string,
+): Promise<AdminBailRequestDetailResult> {
+  if (!isSupabaseConfigured || !supabase) {
+    return {
+      ok: true,
+      bailRequest: mockBailRequests.find((request) => request.id === id) || null,
+      mocked: true,
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("bail_requests")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) {
+    return {
+      ok: false,
+      error: error.message || "Unable to load bail request.",
+    };
+  }
+
+  return {
+    ok: true,
+    bailRequest: data as BailRequest | null,
+    mocked: false,
+  };
+}
+
+export async function getAdminOffersForBailRequest(
+  id: string,
+): Promise<AdminBailRequestOffersResult> {
+  const result = await getOffersForBailRequest(id);
+
+  if (!result.ok) {
+    return result;
+  }
+
+  return result;
+}
+
+export async function getAdminNotificationEventsForEntity(
+  entityType: NotificationEntityType,
+  entityId: string,
+): Promise<AdminNotificationEventsResult> {
+  const result = await getNotificationEventsForEntity(entityType, entityId);
+
+  if (!result.ok) {
+    return result;
+  }
+
+  return result;
 }

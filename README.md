@@ -150,6 +150,17 @@ competing offer decline, and request status update happen atomically.
 9. Approve, reject, or request more information and confirm
    `agency_documents.review_status` updates.
 
+## Admin Document Viewing QA
+
+1. Sign in as admin.
+2. Open `/admin/agency-documents`.
+3. Confirm pending document metadata loads without exposing a public file URL.
+4. Click Generate Secure Link for a document.
+5. Confirm View Document opens a short-lived signed Supabase Storage URL.
+6. Confirm Download uses the same short-lived signed URL.
+7. Confirm an admin activity note is created for the signed link generation.
+8. Confirm non-admin accounts cannot access `/admin/agency-documents`.
+
 ## Customer Portal Test
 
 1. Sign in as a consumer.
@@ -213,6 +224,16 @@ competing offer decline, and request status update happen atomically.
 5. Review an agency document and confirm a document activity note is created.
 6. Confirm recent activity appears on the admin dashboard.
 
+## Admin Request Detail QA
+
+1. Sign in as admin.
+2. Open `/admin/bail-requests`.
+3. Click a request detail link.
+4. Confirm request overview, contact, defendant, jail, bond, status, and timeline load.
+5. Confirm offers and selected provider audit sections load.
+6. Add an admin note and confirm it appears.
+7. Confirm notification events appear if they exist for the request.
+
 ## Notification Events QA
 
 1. Submit a bail request and confirm a `bail_request_submitted` row appears in
@@ -230,6 +251,18 @@ competing offer decline, and request status update happen atomically.
 `agency_matched_to_request` is supported by the notification event schema but
 should be emitted later by an explicit lead dispatch job to avoid duplicate
 events from read-only agency lead queries.
+
+## Notification Safety Notes
+
+- `notification_events` are queued records only. BailX does not send SMS or
+  email from this table yet.
+- Twilio and email delivery are intentionally not connected in the MVP.
+- Failed notification event creation should not block request submission, offer
+  submission, provider selection, agency review, or document review flows.
+- Payloads should stay minimal and avoid full notes, document paths, or large
+  copied records.
+- A future worker or Supabase Edge Function should process pending events and
+  mark them `processed`, `failed`, or `skipped`.
 
 ## Status Timeline Test
 
