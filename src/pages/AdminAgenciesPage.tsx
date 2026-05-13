@@ -13,9 +13,10 @@ import { getRecentAgencyApplications } from "../lib/adminDashboard";
 import { getAgencyDocumentCountsForAgencies } from "../lib/agencyDocuments";
 import type { AdminNote, Agency } from "../types";
 
-type AgencyFilter = "pending" | "approved" | "more_info_requested" | "rejected";
+type AgencyFilter = AgencyVerificationStatus;
 
 const filters: { label: string; value: AgencyFilter }[] = [
+  { label: "Unclaimed directory", value: "unclaimed_directory" },
   { label: "Pending", value: "pending" },
   { label: "Approved", value: "approved" },
   { label: "More info requested", value: "more_info_requested" },
@@ -167,6 +168,9 @@ export function AdminAgenciesPage() {
           <Link className="button secondary" to="/admin/agency-documents">
             Review Documents
           </Link>
+          <Link className="button secondary" to="/admin/provider-directory">
+            Provider Directory
+          </Link>
         </div>
       </div>
 
@@ -214,6 +218,12 @@ export function AdminAgenciesPage() {
                   </div>
                   <span className="status-pill">{agency.verification_status}</span>
                 </div>
+                {agency.verification_status === "unclaimed_directory" ? (
+                  <p className="compliance-note">
+                    Unclaimed public listing. This provider has not completed BailX marketplace
+                    verification and must not receive live request details or submit offers.
+                  </p>
+                ) : null}
                 <dl className="agency-detail-grid">
                   <div>
                     <dt>Contact</dt>
@@ -251,6 +261,18 @@ export function AdminAgenciesPage() {
                     <dt>Owner profile</dt>
                     <dd>{agency.owner_profile_id || "Not linked"}</dd>
                   </div>
+                  {agency.source_type ? (
+                    <div>
+                      <dt>Source type</dt>
+                      <dd>{agency.source_type}</dd>
+                    </div>
+                  ) : null}
+                  {agency.source_url ? (
+                    <div>
+                      <dt>Source URL</dt>
+                      <dd>{agency.source_url}</dd>
+                    </div>
+                  ) : null}
                   {agency.reviewed_at ? (
                     <div>
                       <dt>Reviewed</dt>
@@ -350,7 +372,10 @@ export function AdminAgenciesPage() {
                 <button
                   className="button primary"
                   type="button"
-                  disabled={isUpdatingId === agency.id}
+                  disabled={
+                    isUpdatingId === agency.id ||
+                    agency.verification_status === "unclaimed_directory"
+                  }
                   onClick={() => handleStatusUpdate(agency.id, "approved")}
                 >
                   Approve

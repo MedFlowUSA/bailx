@@ -21,10 +21,12 @@ const roleNavItems: Record<Profile["role"], Array<{ to: string; label: string }>
     { to: "/agency/onboarding", label: "Onboarding" },
     { to: "/agency/leads", label: "Leads" },
     { to: "/agency/apply", label: "Agency Info" },
+    { to: "/agency/claim", label: "Claim Listing" },
   ],
   admin: [
     { to: "/admin/dashboard", label: "Admin Home" },
     { to: "/admin/agencies", label: "Agencies" },
+    { to: "/admin/provider-directory", label: "Directory" },
     { to: "/admin/agency-documents", label: "Documents" },
     { to: "/admin/bail-requests", label: "Requests" },
     { to: "/admin/notifications", label: "Notifications" },
@@ -115,6 +117,7 @@ export function AppLayout() {
           <Link to="/compliance">Compliance</Link>
           <Link to="/consumer-disclosures">Consumer Disclosures</Link>
           <Link to="/agency/apply">Agency Apply</Link>
+          <Link to="/agency/claim">Claim Listing</Link>
         </nav>
       </footer>
     </div>

@@ -404,6 +404,15 @@ export function AdminAgencyDetailPage() {
                 <dt>Owner profile</dt>
                 <dd>{agency.owner_profile_id || "Not linked"}</dd>
               </div>
+              {agency.verification_status === "unclaimed_directory" ? (
+                <div className="agency-review-notes">
+                  <dt>Directory disclaimer</dt>
+                  <dd>
+                    {agency.public_listing_disclaimer ||
+                      "Unclaimed public listing. This provider has not completed BailX marketplace verification."}
+                  </dd>
+                </div>
+              ) : null}
               <div>
                 <dt>Phone / email</dt>
                 <dd>{[agency.phone, agency.email].filter(Boolean).join(" | ") || "Not listed"}</dd>
@@ -428,6 +437,18 @@ export function AdminAgencyDetailPage() {
                 <dt>Collateral accepted</dt>
                 <dd>{agency.collateral_accepted?.join(", ") || "Not listed"}</dd>
               </div>
+              {agency.source_type ? (
+                <div>
+                  <dt>Source type</dt>
+                  <dd>{agency.source_type}</dd>
+                </div>
+              ) : null}
+              {agency.source_url ? (
+                <div>
+                  <dt>Source URL</dt>
+                  <dd>{agency.source_url}</dd>
+                </div>
+              ) : null}
               <div>
                 <dt>Created / updated</dt>
                 <dd>
@@ -497,6 +518,8 @@ export function AdminAgencyDetailPage() {
             <p className="compliance-note">
               Admin approval is a marketplace eligibility action only. Confirm
               agency licensing and documentation according to BailX internal policy before approval.
+              Unclaimed directory listings must be converted to pending verification only after
+              provider contact and must not receive live marketplace leads.
             </p>
           </article>
 
@@ -655,7 +678,7 @@ export function AdminAgencyDetailPage() {
               <button
                 className="button primary"
                 type="button"
-                disabled={isUpdatingAgency}
+                disabled={isUpdatingAgency || agency.verification_status === "unclaimed_directory"}
                 onClick={() => void handleAgencyStatusUpdate("approved")}
               >
                 Approve Agency

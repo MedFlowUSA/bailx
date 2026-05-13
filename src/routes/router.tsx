@@ -36,11 +36,19 @@ const AdminNotificationsPage = lazy(() =>
     default: module.AdminNotificationsPage,
   })),
 );
+const AdminProviderDirectoryPage = lazy(() =>
+  import("../pages/AdminProviderDirectoryPage").then((module) => ({
+    default: module.AdminProviderDirectoryPage,
+  })),
+);
 const AttorneysPage = lazy(() =>
   import("../pages/AttorneysPage").then((module) => ({ default: module.AttorneysPage })),
 );
 const AgencyApplyPage = lazy(() =>
   import("../pages/AgencyApplyPage").then((module) => ({ default: module.AgencyApplyPage })),
+);
+const AgencyClaimPage = lazy(() =>
+  import("../pages/AgencyClaimPage").then((module) => ({ default: module.AgencyClaimPage })),
 );
 const AgencyDashboardPage = lazy(() =>
   import("../pages/AgencyDashboardPage").then((module) => ({ default: module.AgencyDashboardPage })),
@@ -117,6 +125,7 @@ export const router = createBrowserRouter([
       { path: "/", element: lazyPage(<LandingPage />) },
       { path: "/get-help-now", element: lazyPage(<GetHelpNowPage />) },
       { path: "/agency/apply", element: lazyPage(<AgencyApplyPage />) },
+      { path: "/agency/claim", element: lazyPage(<AgencyClaimPage />) },
       { path: "/attorneys", element: lazyPage(<AttorneysPage />) },
       { path: "/privacy", element: lazyPage(<PrivacyPage />) },
       { path: "/terms", element: lazyPage(<TermsPage />) },
@@ -151,6 +160,10 @@ export const router = createBrowserRouter([
           { path: "/admin/dashboard", element: lazyPage(<AdminDashboardPage />) },
           { path: "/admin/agencies", element: lazyPage(<AdminAgenciesPage />) },
           { path: "/admin/agencies/:id", element: lazyPage(<AdminAgencyDetailPage />) },
+          {
+            path: "/admin/provider-directory",
+            element: lazyPage(<AdminProviderDirectoryPage />),
+          },
           {
             path: "/admin/agency-documents",
             element: lazyPage(<AdminAgencyDocumentsPage />),

@@ -78,6 +78,8 @@ export async function createAgencyOffer(
       .from("agencies")
       .select("id")
       .eq("owner_profile_id", profile.id)
+      // Offer submission is limited to approved marketplace agencies.
+      // unclaimed_directory providers are never eligible to submit offers.
       .eq("verification_status", "approved")
       .limit(1)
       .maybeSingle();

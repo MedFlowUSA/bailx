@@ -4,6 +4,7 @@ import { createNotificationEvent, type NotificationEventType } from "./notificat
 import { isSupabaseConfigured, supabase } from "./supabase";
 
 export type AgencyVerificationStatus =
+  | "unclaimed_directory"
   | "pending"
   | "approved"
   | "rejected"
@@ -90,6 +91,7 @@ const statusMessages: Record<AgencyVerificationStatus, string> = {
   more_info_requested: "More information requested.",
   pending: "Agency marked pending.",
   rejected: "Agency rejected.",
+  unclaimed_directory: "Agency marked as unclaimed directory listing.",
 };
 
 const statusNotificationEvents: Record<AgencyVerificationStatus, NotificationEventType> = {
@@ -97,6 +99,7 @@ const statusNotificationEvents: Record<AgencyVerificationStatus, NotificationEve
   more_info_requested: "agency_more_info_requested",
   pending: "agency_application_submitted",
   rejected: "agency_rejected",
+  unclaimed_directory: "agency_application_submitted",
 };
 
 function compactList(value: string[]) {

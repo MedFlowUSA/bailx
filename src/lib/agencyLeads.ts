@@ -85,6 +85,8 @@ export async function getAgencyLeads(): Promise<AgencyLeadsResult> {
   let agencyQuery = supabase
     .from("agencies")
     .select("*")
+    // Only approved marketplace agencies may view matched lead details.
+    // unclaimed_directory records are admin outreach only.
     .eq("verification_status", "approved")
     .order("created_at", { ascending: true });
 

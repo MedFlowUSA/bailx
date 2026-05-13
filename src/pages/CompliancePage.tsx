@@ -21,6 +21,15 @@ export function CompliancePage() {
           </p>
         </article>
         <article className="card">
+          <h2>Directory Listings</h2>
+          <p>
+            Some directory information may be based on publicly available business information and
+            may not indicate a partnership, endorsement, marketplace approval, or verified status.
+            Providers must complete BailX verification before receiving marketplace leads or
+            submitting offers.
+          </p>
+        </article>
+        <article className="card">
           <h2>Local Bail Rules</h2>
           <p>
             Bail laws, court processes, premiums, collateral requirements, and

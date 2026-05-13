@@ -61,6 +61,7 @@ function getMatchedMockAgencies(county?: string) {
 
   return mockAgencies.filter(
     (agency) =>
+      // Unclaimed directory records are outreach-only and must never receive live request data.
       agency.verification_status === "approved" &&
       agency.service_counties.some((agencyCounty) => agencyCounty === normalizedCounty),
   );

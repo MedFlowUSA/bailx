@@ -355,6 +355,20 @@ create duplicate match events.
     or login credential fields exist.
 13. Run `npm run build`.
 
+## Unclaimed Provider Directory QA
+
+1. Apply migration `023_unclaimed_provider_directory.sql`.
+2. Sign in as admin.
+3. Open `/admin/provider-directory`.
+4. Import the ABBA Bail Bonds seed.
+5. Confirm ABBA appears as `unclaimed_directory`.
+6. Confirm ABBA is not shown as BailX verified.
+7. Confirm ABBA cannot receive live matched leads.
+8. Confirm unclaimed providers do not appear in offer submission flows.
+9. Open `/agency/claim`.
+10. Confirm claim explanation and disclaimers.
+11. Run `npm run build`.
+
 ## Status Timeline Test
 
 1. Submit a request from `/get-help-now`.

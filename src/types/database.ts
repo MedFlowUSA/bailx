@@ -20,8 +20,24 @@ export type Agency = {
   service_counties: string[];
   languages: string[];
   collateral_accepted: string[];
-  verification_status: "pending" | "approved" | "rejected" | "more_info_requested";
-  previous_verification_status?: "pending" | "approved" | "rejected" | "more_info_requested" | null;
+  verification_status:
+    | "unclaimed_directory"
+    | "pending"
+    | "approved"
+    | "rejected"
+    | "more_info_requested";
+  previous_verification_status?:
+    | "unclaimed_directory"
+    | "pending"
+    | "approved"
+    | "rejected"
+    | "more_info_requested"
+    | null;
+  claimed_by_profile_id?: string | null;
+  claimed_at?: string | null;
+  source_type?: string | null;
+  source_url?: string | null;
+  public_listing_disclaimer?: string | null;
   reviewed_by_profile_id?: string | null;
   reviewed_at?: string | null;
   review_notes?: string | null;
