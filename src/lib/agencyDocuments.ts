@@ -44,6 +44,11 @@ export type AgencyDocumentsResult =
       error: string;
     };
 
+export type AdminAgencyDocumentsOptions = {
+  agencyId?: string;
+  limit?: number;
+};
+
 export type AgencyDocumentCountsResult =
   | {
       ok: true;
@@ -231,6 +236,59 @@ export async function getAgencyDocumentsForAgency(
   };
 }
 
+export async function getAgencyDocumentsForAdminReview(
+  options: AdminAgencyDocumentsOptions = {},
+): Promise<AgencyDocumentsResult> {
+  if (!isSupabaseConfigured || !supabase) {
+    const documents = options.agencyId
+      ? mockDocuments.filter((document) => document.agency_id === options.agencyId)
+      : mockDocuments;
+
+    return {
+      ok: true,
+      documents: documents.slice(0, options.limit || documents.length),
+      mocked: true,
+    };
+  }
+
+  const profile = await getCurrentProfile();
+
+  if (profile?.role !== "admin") {
+    return {
+      ok: false,
+      error: "Only admins can view agency verification documents.",
+    };
+  }
+
+  let query = supabase
+    .from("agency_documents")
+    .select("*, agencies(business_name)")
+    .order("created_at", { ascending: false });
+
+  if (options.agencyId) {
+    query = query.eq("agency_id", options.agencyId);
+  }
+
+  if (options.limit) {
+    query = query.limit(options.limit);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    return {
+      ok: false,
+      error: error.message || "Unable to load agency verification documents.",
+    };
+  }
+
+  return {
+    ok: true,
+    documents: (data || []) as AgencyDocument[],
+    mocked: false,
+  };
+}
+
 export async function getAgencyDocumentCountsForAgencies(
   agencyIds: string[],
 ): Promise<AgencyDocumentCountsResult> {
@@ -349,6 +407,49 @@ export async function createAdminAgencyDocumentSignedUrl(
     mocked: false,
     message: "Secure document link generated.",
   };
+}
+
+export async function getSignedAgencyDocumentUrl(
+  documentId: string,
+  expiresInSeconds = 300,
+): Promise<AgencyDocumentSignedUrlResult> {
+  if (!isSupabaseConfigured || !supabase) {
+    return {
+      ok: false,
+      error: "Signed document viewing requires Supabase Storage.",
+    };
+  }
+
+  const profile = await getCurrentProfile();
+
+  if (profile?.role !== "admin") {
+    return {
+      ok: false,
+      error: "Only admins can request secure agency document links.",
+    };
+  }
+
+  const { data: document, error: lookupError } = await supabase
+    .from("agency_documents")
+    .select("*")
+    .eq("id", documentId)
+    .maybeSingle();
+
+  if (lookupError) {
+    return {
+      ok: false,
+      error: lookupError.message || "Unable to load agency document.",
+    };
+  }
+
+  if (!document) {
+    return {
+      ok: false,
+      error: "Agency document not found.",
+    };
+  }
+
+  return createAdminAgencyDocumentSignedUrl(document as AgencyDocument, expiresInSeconds);
 }
 
 export async function updateAgencyDocumentReviewStatus(

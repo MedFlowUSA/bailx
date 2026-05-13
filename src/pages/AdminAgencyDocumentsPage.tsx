@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
-  createAdminAgencyDocumentSignedUrl,
-  getPendingAgencyDocuments,
+  getAgencyDocumentsForAdminReview,
+  getSignedAgencyDocumentUrl,
   updateAgencyDocumentReviewStatus,
   type AgencyDocumentReviewStatus,
 } from "../lib/agencyDocuments";
@@ -24,8 +24,7 @@ export function AdminAgencyDocumentsPage() {
   const [documents, setDocuments] = useState<AgencyDocument[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
-  const [viewingId, setViewingId] = useState<string | null>(null);
-  const [secureLinks, setSecureLinks] = useState<Record<string, string>>({});
+  const [documentActionId, setDocumentActionId] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -33,7 +32,7 @@ export function AdminAgencyDocumentsPage() {
     setIsLoading(true);
     setErrorMessage(null);
 
-    const result = await getPendingAgencyDocuments();
+    const result = await getAgencyDocumentsForAdminReview({ limit: 100 });
     setIsLoading(false);
 
     if (!result.ok) {
@@ -44,7 +43,7 @@ export function AdminAgencyDocumentsPage() {
     setDocuments(result.documents);
     if (!options.preserveStatusMessage) {
       setStatusMessage(
-        result.mocked ? "Showing mock pending agency documents until Supabase is configured." : null,
+        result.mocked ? "Showing mock agency documents until Supabase is configured." : null,
       );
     }
   }
@@ -99,34 +98,49 @@ export function AdminAgencyDocumentsPage() {
     await loadDocuments({ preserveStatusMessage: true });
   }
 
-  async function handleCreateSecureLink(document: AgencyDocument) {
-    setViewingId(document.id);
+  async function handleDocumentAccess(document: AgencyDocument, action: "view" | "download") {
+    setDocumentActionId(`${document.id}-${action}`);
     setErrorMessage(null);
     setStatusMessage(null);
 
-    const result = await createAdminAgencyDocumentSignedUrl(document);
-    setViewingId(null);
+    const result = await getSignedAgencyDocumentUrl(document.id);
+    setDocumentActionId(null);
 
     if (!result.ok) {
       setErrorMessage(result.error);
       return;
     }
 
-    setSecureLinks((current) => ({
-      ...current,
-      [document.id]: result.signedUrl,
-    }));
+    if (action === "view") {
+      const opened = window.open(result.signedUrl, "_blank", "noopener,noreferrer");
+
+      if (!opened) {
+        setErrorMessage("Allow pop-ups to view this secure document.");
+        return;
+      }
+    } else {
+      const link = window.document.createElement("a");
+      link.href = result.signedUrl;
+      link.download = document.file_name || "agency-document";
+      link.rel = "noreferrer";
+      window.document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
 
     const noteResult = await createAdminNote({
       entityType: "agency_document",
       entityId: document.id,
-      noteType: "document_review",
-      message: "Agency document secure view link generated.",
+      noteType: "compliance_review",
+      message:
+        action === "view"
+          ? "Admin generated a secure signed URL to review this document."
+          : "Admin generated a secure signed URL to download this document.",
       metadata: {
         document_id: document.id,
         agency_id: document.agency_id,
         expires_in_seconds: result.expiresInSeconds,
-        action: "signed_url_generated",
+        action: `${action}_signed_url_generated`,
       },
     });
 
@@ -135,7 +149,11 @@ export function AdminAgencyDocumentsPage() {
       return;
     }
 
-    setStatusMessage(result.message);
+    setStatusMessage(
+      action === "view"
+        ? "Secure document view link opened. Link expires in 5 minutes."
+        : "Secure document download started. Link expires in 5 minutes.",
+    );
   }
 
   return (
@@ -144,6 +162,7 @@ export function AdminAgencyDocumentsPage() {
         <div>
           <p className="eyebrow">Admin</p>
           <h1>Agency Documents</h1>
+          <p>Review private verification files through short-lived signed URLs.</p>
         </div>
         <button className="button secondary" type="button" onClick={() => void loadDocuments()}>
           Refresh
@@ -154,7 +173,7 @@ export function AdminAgencyDocumentsPage() {
         {isLoading ? <p>Loading pending documents...</p> : null}
         {statusMessage ? <p className="form-message success">{statusMessage}</p> : null}
         {errorMessage ? <p className="form-message error">{errorMessage}</p> : null}
-        {!isLoading && documents.length === 0 ? <p>No pending agency documents.</p> : null}
+        {!isLoading && documents.length === 0 ? <p>No agency documents found.</p> : null}
 
         <div className="agency-review-list">
           {documents.map((document) => (
@@ -199,33 +218,19 @@ export function AdminAgencyDocumentsPage() {
                   <button
                     className="button secondary"
                     type="button"
-                    disabled={viewingId === document.id}
-                    onClick={() => void handleCreateSecureLink(document)}
+                    disabled={documentActionId === `${document.id}-view`}
+                    onClick={() => void handleDocumentAccess(document, "view")}
                   >
-                    {viewingId === document.id ? "Preparing..." : "Generate Secure Link"}
+                    {documentActionId === `${document.id}-view` ? "Opening..." : "View Document"}
                   </button>
-                  {secureLinks[document.id] ? (
-                    <>
-                      <a
-                        className="button secondary"
-                        href={secureLinks[document.id]}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        View Document
-                      </a>
-                      <a
-                        className="button secondary"
-                        href={secureLinks[document.id]}
-                        download={document.file_name || true}
-                      >
-                        Download
-                      </a>
-                      <p className="form-message">
-                        Link expires shortly. Generate a new link when needed.
-                      </p>
-                    </>
-                  ) : null}
+                  <button
+                    className="button secondary"
+                    type="button"
+                    disabled={documentActionId === `${document.id}-download`}
+                    onClick={() => void handleDocumentAccess(document, "download")}
+                  >
+                    {documentActionId === `${document.id}-download` ? "Preparing..." : "Download Document"}
+                  </button>
                 </div>
               </div>
               <form className="admin-actions" onSubmit={(event) => event.preventDefault()}>

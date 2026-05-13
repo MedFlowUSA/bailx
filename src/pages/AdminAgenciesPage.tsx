@@ -296,9 +296,9 @@ export function AdminAgenciesPage() {
                     </span>
                   </div>
                   <p className="compliance-note">
-                    Marketplace trust signals are based on information submitted to
-                    BailX and internal platform review. BailX does not guarantee
-                    provider licensing status, pricing, release timing, or service outcome.
+                    BailX marketplace review status reflects internal platform
+                    eligibility review. BailX does not guarantee provider licensing
+                    status, pricing, financing, timing, release, or service outcome.
                   </p>
                 </div>
                 {(recentNotesByAgencyId[agency.id] || []).length > 0 ? (
@@ -314,6 +314,9 @@ export function AdminAgenciesPage() {
                 ) : null}
               </div>
               <div className="admin-actions">
+                <Link className="button secondary" to={`/admin/agencies/${agency.id}`}>
+                  View Agency File
+                </Link>
                 <label className="review-notes-field">
                   Review notes
                   <textarea

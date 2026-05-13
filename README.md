@@ -57,6 +57,28 @@ requests from the consumer dashboard.
     legal links, and primary dashboard actions.
 17. Run `npm run build`.
 
+## Secure Document Viewing + Agency Verification QA
+
+1. Sign in as admin.
+2. Open `/admin/agencies`.
+3. Click View Agency File.
+4. Confirm `/admin/agencies/:id` loads.
+5. Confirm profile, service areas, collateral, languages, and verification status display.
+6. Confirm uploaded documents display without permanent storage paths.
+7. Click View Document.
+8. Confirm a short-lived signed URL opens in a new tab.
+9. Confirm signed URL access does not require making the `agency-documents` bucket public.
+10. Click Download Document and confirm a fresh signed URL is generated.
+11. Approve a document.
+12. Request more information on a document.
+13. Reject a document.
+14. Confirm admin note/activity appears if supported by the current admin notes table.
+15. Confirm agency verification warnings update after document review changes.
+16. Use the agency decision panel to approve, reject, or request more information.
+17. Confirm the verification timeline reflects agency creation, document activity,
+    review decisions, and admin notes.
+18. Run `npm run build`.
+
 ## Final RLS Lockdown Notes
 
 - Anonymous users can submit emergency requests only. They cannot read request,

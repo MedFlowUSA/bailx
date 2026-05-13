@@ -169,9 +169,9 @@ export function AgencyDashboardPage() {
               </div>
             </dl>
             <p className="compliance-note">
-              Marketplace trust signals are based on information submitted to
-              BailX and internal platform review. BailX does not guarantee
-              provider licensing status, pricing, release timing, or service outcome.
+              BailX marketplace review status reflects internal platform eligibility
+              review. BailX does not guarantee provider licensing status, pricing,
+              financing, timing, release, or service outcome.
             </p>
           </article>
         ) : null}

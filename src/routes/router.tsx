@@ -13,6 +13,11 @@ const AdminAgencyDocumentsPage = lazy(() =>
     default: module.AdminAgencyDocumentsPage,
   })),
 );
+const AdminAgencyDetailPage = lazy(() =>
+  import("../pages/AdminAgencyDetailPage").then((module) => ({
+    default: module.AdminAgencyDetailPage,
+  })),
+);
 const AdminBailRequestsPage = lazy(() =>
   import("../pages/AdminBailRequestsPage").then((module) => ({
     default: module.AdminBailRequestsPage,
@@ -145,6 +150,7 @@ export const router = createBrowserRouter([
         children: [
           { path: "/admin/dashboard", element: lazyPage(<AdminDashboardPage />) },
           { path: "/admin/agencies", element: lazyPage(<AdminAgenciesPage />) },
+          { path: "/admin/agencies/:id", element: lazyPage(<AdminAgencyDetailPage />) },
           {
             path: "/admin/agency-documents",
             element: lazyPage(<AdminAgencyDocumentsPage />),

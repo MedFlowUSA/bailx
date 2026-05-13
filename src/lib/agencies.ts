@@ -56,6 +56,17 @@ export type CurrentAgencyResult =
       error: string;
     };
 
+export type AgencyDetailResult =
+  | {
+      ok: true;
+      agency: Agency | null;
+      mocked: boolean;
+    }
+  | {
+      ok: false;
+      error: string;
+    };
+
 export const mockAgencies: Agency[] = [
   {
     id: "mock-agency-1",
@@ -238,6 +249,35 @@ export async function getCurrentAgencyApplication(): Promise<CurrentAgencyResult
     return {
       ok: false,
       error: error.message || "Unable to load agency profile.",
+    };
+  }
+
+  return {
+    ok: true,
+    agency: data as Agency | null,
+    mocked: false,
+  };
+}
+
+export async function getAgencyForAdminReview(agencyId: string): Promise<AgencyDetailResult> {
+  if (!isSupabaseConfigured || !supabase) {
+    return {
+      ok: true,
+      agency: mockAgencies.find((agency) => agency.id === agencyId) || null,
+      mocked: true,
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("agencies")
+    .select("*")
+    .eq("id", agencyId)
+    .maybeSingle();
+
+  if (error) {
+    return {
+      ok: false,
+      error: error.message || "Unable to load agency file.",
     };
   }
 
