@@ -10,6 +10,7 @@ import {
   updateAgencyVerificationStatus,
 } from "../lib/agencies";
 import { getRecentAgencyApplications } from "../lib/adminDashboard";
+import { getAgencyDocumentCountsForAgencies } from "../lib/agencyDocuments";
 import type { AdminNote, Agency } from "../types";
 
 type AgencyFilter = "pending" | "approved" | "more_info_requested" | "rejected";
@@ -43,6 +44,7 @@ export function AdminAgenciesPage() {
   const [reviewNotesByAgencyId, setReviewNotesByAgencyId] = useState<Record<string, string>>({});
   const [adminNotesByAgencyId, setAdminNotesByAgencyId] = useState<Record<string, string>>({});
   const [recentNotesByAgencyId, setRecentNotesByAgencyId] = useState<Record<string, AdminNote[]>>({});
+  const [documentCountsByAgencyId, setDocumentCountsByAgencyId] = useState<Record<string, number>>({});
 
   async function loadAgencyNotes(nextAgencies: Agency[]) {
     const notesEntries = await Promise.all(
@@ -69,6 +71,12 @@ export function AdminAgenciesPage() {
 
     setAgencies(result.agencies);
     await loadAgencyNotes(result.agencies);
+    const countsResult = await getAgencyDocumentCountsForAgencies(
+      result.agencies.map((agency) => agency.id),
+    );
+    if (countsResult.ok) {
+      setDocumentCountsByAgencyId(countsResult.counts);
+    }
     if (!options.preserveStatusMessage) {
       setStatusMessage(
         result.mocked ? "Showing mock agency applications until Supabase is configured." : null,
@@ -182,6 +190,10 @@ export function AdminAgenciesPage() {
             <p>Do not approve agencies without manual license and document verification.</p>
           </div>
         </div>
+        <p className="compliance-note">
+          Admin approval is a marketplace eligibility action only. Confirm agency
+          licensing and documentation according to BailX internal policy before approval.
+        </p>
 
         {isLoading ? <p>Loading agency applications...</p> : null}
         {statusMessage ? <p className="form-message success">{statusMessage}</p> : null}
@@ -232,6 +244,10 @@ export function AdminAgenciesPage() {
                     <dd>{agency.subscription_tier || "Not selected"}</dd>
                   </div>
                   <div>
+                    <dt>Documents submitted</dt>
+                    <dd>{documentCountsByAgencyId[agency.id] || 0}</dd>
+                  </div>
+                  <div>
                     <dt>Owner profile</dt>
                     <dd>{agency.owner_profile_id || "Not linked"}</dd>
                   </div>
@@ -260,6 +276,31 @@ export function AdminAgenciesPage() {
                     </div>
                   ) : null}
                 </dl>
+                <div className="trust-signal-panel">
+                  <p className="eyebrow">BailX trust signals</p>
+                  <div className="badge-row" aria-label="Agency marketplace trust signals">
+                    <span className="soft-badge">
+                      Review status: {formatStatus(agency.verification_status)}
+                    </span>
+                    <span className="soft-badge">
+                      Documents submitted: {documentCountsByAgencyId[agency.id] || 0}
+                    </span>
+                    <span className="soft-badge">
+                      Counties: {agency.service_counties?.length || 0}
+                    </span>
+                    <span className="soft-badge">
+                      Languages: {agency.languages?.length || 0}
+                    </span>
+                    <span className="soft-badge">
+                      Collateral categories: {agency.collateral_accepted?.length || 0}
+                    </span>
+                  </div>
+                  <p className="compliance-note">
+                    Marketplace trust signals are based on information submitted to
+                    BailX and internal platform review. BailX does not guarantee
+                    provider licensing status, pricing, release timing, or service outcome.
+                  </p>
+                </div>
                 {(recentNotesByAgencyId[agency.id] || []).length > 0 ? (
                   <div className="admin-note-list">
                     <p className="eyebrow">Recent admin activity</p>

@@ -6,7 +6,7 @@ import type { Profile } from "../types";
 
 const navItems = [
   { to: "/get-help-now", label: "Get Help" },
-  { to: "/agency/onboarding", label: "Agencies" },
+  { to: "/agency/apply", label: "Agencies" },
   { to: "/admin/dashboard", label: "Admin" },
 ];
 
@@ -79,10 +79,19 @@ export function AppLayout() {
         <Outlet />
       </main>
       <footer className="site-footer">
-        <strong>BailX compliance notice:</strong> BailX is not a bail bond company,
-        broker, lender, law firm, or legal representative. BailX is a technology
-        marketplace and advertising platform that connects consumers with
-        independently licensed providers.
+        <p>
+          <strong>BailX compliance notice:</strong> BailX is not a bail bond
+          company, broker, lender, law firm, or legal representative. BailX is a
+          technology marketplace and advertising platform that connects consumers
+          with independently licensed providers.
+        </p>
+        <nav className="footer-links" aria-label="Legal and trust links">
+          <Link to="/privacy">Privacy</Link>
+          <Link to="/terms">Terms</Link>
+          <Link to="/compliance">Compliance</Link>
+          <Link to="/consumer-disclosures">Consumer Disclosures</Link>
+          <Link to="/agency/apply">Agency Apply</Link>
+        </nav>
       </footer>
     </div>
   );

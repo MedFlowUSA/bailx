@@ -44,6 +44,17 @@ export type AgencyDocumentsResult =
       error: string;
     };
 
+export type AgencyDocumentCountsResult =
+  | {
+      ok: true;
+      counts: Record<string, number>;
+      mocked: boolean;
+    }
+  | {
+      ok: false;
+      error: string;
+    };
+
 export type AgencyDocumentSignedUrlResult =
   | {
       ok: true;
@@ -216,6 +227,50 @@ export async function getAgencyDocumentsForAgency(
   return {
     ok: true,
     documents: (data || []) as AgencyDocument[],
+    mocked: false,
+  };
+}
+
+export async function getAgencyDocumentCountsForAgencies(
+  agencyIds: string[],
+): Promise<AgencyDocumentCountsResult> {
+  if (agencyIds.length === 0) {
+    return { ok: true, counts: {}, mocked: false };
+  }
+
+  if (!isSupabaseConfigured || !supabase) {
+    return {
+      ok: true,
+      counts: mockDocuments.reduce<Record<string, number>>((counts, document) => {
+        if (agencyIds.includes(document.agency_id)) {
+          counts[document.agency_id] = (counts[document.agency_id] || 0) + 1;
+        }
+
+        return counts;
+      }, {}),
+      mocked: true,
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("agency_documents")
+    .select("agency_id")
+    .in("agency_id", agencyIds);
+
+  if (error) {
+    return {
+      ok: false,
+      error: error.message || "Unable to load agency document counts.",
+    };
+  }
+
+  return {
+    ok: true,
+    counts: (data || []).reduce<Record<string, number>>((counts, document) => {
+      const agencyId = String(document.agency_id);
+      counts[agencyId] = (counts[agencyId] || 0) + 1;
+      return counts;
+    }, {}),
     mocked: false,
   };
 }

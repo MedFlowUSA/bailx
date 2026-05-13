@@ -28,6 +28,35 @@ Consumers must sign in to view their own request dashboard and offers. Anonymous
 emergency intake remains public, but anonymous users cannot track submitted
 requests from the consumer dashboard.
 
+## Trust, Compliance, and Operational Superiority QA
+
+1. Visit `/privacy`, `/terms`, `/compliance`, and `/consumer-disclosures`.
+2. Confirm each public disclosure page states BailX is a technology marketplace,
+   not a bail bond company, lender, law firm, or legal representative.
+3. Visit `/agency/apply` and confirm the public agency onboarding overview loads
+   before sign-in.
+4. Submit an emergency request from `/get-help-now` only after checking all
+   required consent boxes.
+5. Confirm request submission creates expected `bail_requests` data, including
+   consent metadata when migration `020_bail_request_consent_metadata.sql` is applied.
+6. Sign in as a consumer and view the request detail page.
+7. Confirm consumer guidance appears in the Before You Choose a Provider section.
+8. Confirm offers display clear disclosure, comparison data, status, timestamps,
+   and soft badges when offer data supports them.
+9. Sign in as admin.
+10. Open `/admin/bail-requests`.
+11. Click request detail and confirm `/admin/bail-requests/:id` loads.
+12. Confirm request overview, requester contact, defendant, jail, bond, urgency,
+    status timeline, consent metadata, offers, selected provider, notes, and
+    notification events render.
+13. Add an admin note and confirm it appears after save.
+14. Confirm notification events appear if available.
+15. Confirm agency trust signals appear on admin agency review and agency dashboard
+    surfaces.
+16. Test keyboard navigation on the intake form, disclosure checkboxes, footer
+    legal links, and primary dashboard actions.
+17. Run `npm run build`.
+
 ## Final RLS Lockdown Notes
 
 - Anonymous users can submit emergency requests only. They cannot read request,
@@ -248,9 +277,9 @@ competing offer decline, and request status update happen atomically.
    recipient fields, and payload preview.
 7. Confirm recent notification events appear on `/admin/dashboard`.
 
-`agency_matched_to_request` is supported by the notification event schema but
-should be emitted later by an explicit lead dispatch job to avoid duplicate
-events from read-only agency lead queries.
+`agency_matched_to_request` is emitted by the `dispatch_agency_matches` RPC during
+request intake. The agency lead inbox remains read-only so refreshes do not
+create duplicate match events.
 
 ## Notification Safety Notes
 

@@ -1,4 +1,5 @@
 import { FormEvent, useState } from "react";
+import { Link } from "react-router-dom";
 import { createBailRequest } from "../lib/bailRequests";
 import { CollateralOptions } from "./CollateralOptions";
 
@@ -39,6 +40,9 @@ export function EmergencyIntakeForm() {
       preferred_language: String(formData.get("preferredLanguage") || ""),
       collateral_available: formData.getAll("collateral").map(String),
       notes: String(formData.get("notes") || ""),
+      consent_marketplace_share: formData.get("consentMarketplaceShare") === "on",
+      consent_no_legal_advice: formData.get("consentNoLegalAdvice") === "on",
+      consent_terms_privacy: formData.get("consentTermsPrivacy") === "on",
     });
 
     setIsSubmitting(false);
@@ -57,35 +61,52 @@ export function EmergencyIntakeForm() {
   }
 
   return (
-    <form className="card form-card" onSubmit={handleSubmit}>
+    <form className="card form-card" onSubmit={handleSubmit} aria-describedby="intake-disclosure">
       <div className="form-grid">
         <label>
-          Requester name
-          <input name="requesterName" placeholder="Your full name" required />
+          Requester name <span className="required-marker">Required</span>
+          <input name="requesterName" placeholder="Your full name" required aria-required="true" />
         </label>
         <label>
-          Requester phone
-          <input name="requesterPhone" placeholder="(555) 000-0000" type="tel" required />
+          Requester phone <span className="required-marker">Required</span>
+          <input
+            name="requesterPhone"
+            placeholder="(555) 000-0000"
+            type="tel"
+            required
+            aria-required="true"
+          />
         </label>
         <label>
-          Requester email
-          <input name="requesterEmail" placeholder="you@example.com" type="email" required />
+          Requester email <span className="required-marker">Required</span>
+          <input
+            name="requesterEmail"
+            placeholder="you@example.com"
+            type="email"
+            required
+            aria-required="true"
+          />
         </label>
         <label>
-          Defendant name
-          <input name="defendantName" placeholder="Person in custody" required />
+          Defendant name <span className="required-marker">Required</span>
+          <input name="defendantName" placeholder="Person in custody" required aria-required="true" />
         </label>
         <label>
-          Jail or detention location
-          <input name="jailLocation" placeholder="County jail or city" required />
+          Jail or detention location <span className="required-marker">Required</span>
+          <input
+            name="jailLocation"
+            placeholder="County jail or city"
+            required
+            aria-required="true"
+          />
         </label>
         <label>
           Jail city
           <input name="jailCity" placeholder="Los Angeles" />
         </label>
         <label>
-          Jail county
-          <input name="jailCounty" placeholder="Los Angeles" required />
+          Jail county <span className="required-marker">Required</span>
+          <input name="jailCounty" placeholder="Los Angeles" required aria-required="true" />
         </label>
         <label>
           Jail state
@@ -124,8 +145,41 @@ export function EmergencyIntakeForm() {
         Notes
         <textarea name="notes" placeholder="Anything providers should know now" />
       </label>
-      {successMessage ? <p className="form-message success">{successMessage}</p> : null}
-      {errorMessage ? <p className="form-message error">{errorMessage}</p> : null}
+      <div className="disclosure-box" id="intake-disclosure">
+        <strong>Marketplace disclosure</strong>
+        <p>
+          By submitting this request, you understand that BailX is a technology
+          marketplace and may share your request details with approved independent
+          providers who may respond with offers. BailX is not a bail bond company,
+          lender, law firm, or legal representative and does not guarantee release,
+          pricing, approval, financing, or timing.
+        </p>
+        <label className="check-option">
+          <input name="consentMarketplaceShare" type="checkbox" required />
+          <span>I understand BailX may share this request with approved independent providers.</span>
+        </label>
+        <label className="check-option">
+          <input name="consentNoLegalAdvice" type="checkbox" required />
+          <span>I understand BailX does not provide legal advice or guarantee release.</span>
+        </label>
+        <label className="check-option">
+          <input name="consentTermsPrivacy" type="checkbox" required />
+          <span>
+            I agree to the <Link to="/terms">Terms</Link> and{" "}
+            <Link to="/privacy">Privacy Policy</Link>.
+          </span>
+        </label>
+      </div>
+      {successMessage ? (
+        <p className="form-message success" role="status" aria-live="polite">
+          {successMessage}
+        </p>
+      ) : null}
+      {errorMessage ? (
+        <p className="form-message error" role="alert">
+          {errorMessage}
+        </p>
+      ) : null}
       <button className="button primary" type="submit" disabled={isSubmitting}>
         {isSubmitting ? "Submitting..." : "Submit Emergency Request"}
       </button>

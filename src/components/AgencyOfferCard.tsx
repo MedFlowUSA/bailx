@@ -29,6 +29,34 @@ function formatMoney(value: number | null | undefined) {
   }).format(value);
 }
 
+function getOfferBadges(offer: AgencyOffer) {
+  const badges: string[] = [];
+
+  if (offer.financing_available) {
+    badges.push("Financing available");
+  }
+
+  if (offer.collateral_notes) {
+    badges.push("Collateral flexible");
+  }
+
+  if (offer.estimated_release_time) {
+    badges.push("Fast estimate provided");
+  }
+
+  if (
+    offer.down_payment !== null &&
+    offer.down_payment !== undefined &&
+    offer.estimated_release_time &&
+    offer.collateral_notes &&
+    offer.message
+  ) {
+    badges.push("Complete offer");
+  }
+
+  return badges;
+}
+
 export function AgencyOfferCard(props: AgencyOfferCardProps) {
   if (!props.offer) {
     return (
@@ -50,8 +78,10 @@ export function AgencyOfferCard(props: AgencyOfferCardProps) {
   const agencyPhone = offer.agencies?.phone;
   const agencyEmail = offer.agencies?.email;
   const isSelected = offer.status === "selected";
+  const isDeclined = offer.status === "declined";
   const showProviderContact = Boolean(isSelected && (agencyPhone || agencyEmail));
   const canSelect = Boolean(props.onSelect) && !props.disabled && !isSelected;
+  const badges = getOfferBadges(offer);
 
   async function copyContactInfo() {
     const contact = [
@@ -68,12 +98,25 @@ export function AgencyOfferCard(props: AgencyOfferCardProps) {
   }
 
   return (
-    <article className={`card comparison-offer-card${isSelected ? " selected-offer" : ""}`}>
+    <article
+      className={`card comparison-offer-card${isSelected ? " selected-offer" : ""}${
+        isDeclined ? " declined-offer" : ""
+      }`}
+    >
       <div>
         <p className="eyebrow">{isSelected ? "Selected provider" : offer.status}</p>
         <h3>{agencyName}</h3>
         <p>{offer.message || "Provider did not add a message yet."}</p>
       </div>
+      {badges.length > 0 ? (
+        <div className="badge-row" aria-label="Offer trust signals">
+          {badges.map((badge) => (
+            <span className="soft-badge" key={badge}>
+              {badge}
+            </span>
+          ))}
+        </div>
+      ) : null}
       <div className="offer-highlight-row">
         <div>
           <span>Down payment</span>
@@ -98,8 +141,24 @@ export function AgencyOfferCard(props: AgencyOfferCardProps) {
           <dd>{offer.financing_available ? "Financing available" : "Confirm with provider"}</dd>
         </div>
         <div>
-          <dt>Collateral</dt>
+          <dt>Collateral notes</dt>
           <dd>{offer.collateral_notes || "Confirm with provider"}</dd>
+        </div>
+        <div>
+          <dt>Status</dt>
+          <dd>{offer.status}</dd>
+        </div>
+        <div>
+          <dt>Created</dt>
+          <dd>{new Date(offer.created_at).toLocaleString()}</dd>
+        </div>
+        <div>
+          <dt>Selection state</dt>
+          <dd>{isSelected ? "Selected by consumer" : isDeclined ? "Declined after selection" : "Open"}</dd>
+        </div>
+        <div className="agency-review-notes">
+          <dt>Provider message</dt>
+          <dd>{offer.message || "No message supplied."}</dd>
         </div>
       </dl>
       {showProviderContact ? (

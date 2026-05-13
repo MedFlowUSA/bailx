@@ -16,13 +16,14 @@ export function LandingPage() {
             <Link className="button primary" to="/get-help-now">
               Get Help Now
             </Link>
-            <Link className="button ghost" to="/agency/onboarding">
+            <Link className="button ghost" to="/agency/apply">
               Agency Onboarding
             </Link>
           </div>
           <p className="hero-disclaimer">
             BailX is a technology marketplace and advertising platform, not a
             bail bond company, broker, lender, law firm, or legal representative.
+            Review our <Link to="/consumer-disclosures">consumer disclosures</Link>.
           </p>
         </div>
         <aside className="hero-panel" aria-label="BailX request summary">

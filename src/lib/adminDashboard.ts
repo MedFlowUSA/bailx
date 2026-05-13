@@ -88,6 +88,10 @@ const mockAdminRequests: BailRequest[] = [
   },
 ];
 
+export function addMockAdminBailRequest(request: BailRequest) {
+  mockAdminRequests.unshift(request);
+}
+
 const mockSelectedOffers: AdminSelectedOffer[] = [
   {
     id: "mock-selected-offer-1",

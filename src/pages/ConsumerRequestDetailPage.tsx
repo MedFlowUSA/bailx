@@ -22,6 +22,16 @@ function formatMoney(value: number | null | undefined) {
   }).format(value);
 }
 
+const providerChoiceGuidance = [
+  "Confirm the total amount due today.",
+  "Ask whether the premium is refundable or non-refundable.",
+  "Ask what collateral is required.",
+  "Ask whether financing includes fees or interest.",
+  "Ask who the main point of contact is.",
+  "Ask what happens if the defendant misses court.",
+  "Ask for all terms in writing.",
+];
+
 export function ConsumerRequestDetailPage() {
   const { id } = useParams();
   const [bailRequest, setBailRequest] = useState<BailRequest | null>(null);
@@ -199,6 +209,15 @@ export function ConsumerRequestDetailPage() {
               <li>Approved providers may review your request and submit offers.</li>
               {offers.length > 0 ? <li>Offers are available for review.</li> : null}
               {selectedOffer ? <li>Provider selected. Contact them directly for next steps.</li> : null}
+            </ul>
+          </article>
+          <article className="card guidance-card">
+            <p className="eyebrow">Before you choose</p>
+            <h2>Provider questions</h2>
+            <ul className="question-list">
+              {providerChoiceGuidance.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
             </ul>
           </article>
         </section>

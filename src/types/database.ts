@@ -66,6 +66,10 @@ export type BailRequest = {
   preferred_language: string;
   collateral_available: string[];
   notes?: string;
+  consent_marketplace_share?: boolean | null;
+  consent_no_legal_advice?: boolean | null;
+  consent_terms_privacy?: boolean | null;
+  consented_at?: string | null;
   status:
     | "submitted"
     | "providers_notified"

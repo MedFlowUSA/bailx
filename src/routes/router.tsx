@@ -34,6 +34,9 @@ const AdminNotificationsPage = lazy(() =>
 const AttorneysPage = lazy(() =>
   import("../pages/AttorneysPage").then((module) => ({ default: module.AttorneysPage })),
 );
+const AgencyApplyPage = lazy(() =>
+  import("../pages/AgencyApplyPage").then((module) => ({ default: module.AgencyApplyPage })),
+);
 const AgencyDashboardPage = lazy(() =>
   import("../pages/AgencyDashboardPage").then((module) => ({ default: module.AgencyDashboardPage })),
 );
@@ -55,6 +58,14 @@ const ConsumerRequestDetailPage = lazy(() =>
     default: module.ConsumerRequestDetailPage,
   })),
 );
+const CompliancePage = lazy(() =>
+  import("../pages/CompliancePage").then((module) => ({ default: module.CompliancePage })),
+);
+const ConsumerDisclosuresPage = lazy(() =>
+  import("../pages/ConsumerDisclosuresPage").then((module) => ({
+    default: module.ConsumerDisclosuresPage,
+  })),
+);
 const GetHelpNowPage = lazy(() =>
   import("../pages/GetHelpNowPage").then((module) => ({ default: module.GetHelpNowPage })),
 );
@@ -64,11 +75,17 @@ const LandingPage = lazy(() =>
 const NotFoundPage = lazy(() =>
   import("../pages/NotFoundPage").then((module) => ({ default: module.NotFoundPage })),
 );
+const PrivacyPage = lazy(() =>
+  import("../pages/PrivacyPage").then((module) => ({ default: module.PrivacyPage })),
+);
 const SignInPage = lazy(() =>
   import("../pages/SignInPage").then((module) => ({ default: module.SignInPage })),
 );
 const SignUpPage = lazy(() =>
   import("../pages/SignUpPage").then((module) => ({ default: module.SignUpPage })),
+);
+const TermsPage = lazy(() =>
+  import("../pages/TermsPage").then((module) => ({ default: module.TermsPage })),
 );
 
 function BailXLoading() {
@@ -94,7 +111,12 @@ export const router = createBrowserRouter([
     children: [
       { path: "/", element: lazyPage(<LandingPage />) },
       { path: "/get-help-now", element: lazyPage(<GetHelpNowPage />) },
+      { path: "/agency/apply", element: lazyPage(<AgencyApplyPage />) },
       { path: "/attorneys", element: lazyPage(<AttorneysPage />) },
+      { path: "/privacy", element: lazyPage(<PrivacyPage />) },
+      { path: "/terms", element: lazyPage(<TermsPage />) },
+      { path: "/compliance", element: lazyPage(<CompliancePage />) },
+      { path: "/consumer-disclosures", element: lazyPage(<ConsumerDisclosuresPage />) },
       { path: "/auth/sign-in", element: lazyPage(<SignInPage />) },
       { path: "/auth/sign-up", element: lazyPage(<SignUpPage />) },
       { path: "/auth/sign-out", element: <SignOutPage /> },

@@ -241,6 +241,33 @@ export function AdminBailRequestDetailPage() {
             <RequestStatusTimeline status={bailRequest.status} compact />
           </article>
 
+          <article className="card admin-list-card">
+            <div className="admin-list-header">
+              <div>
+                <p className="eyebrow">Consent audit</p>
+                <h2>Intake disclosure metadata</h2>
+              </div>
+            </div>
+            <dl className="agency-detail-grid">
+              <div>
+                <dt>Provider sharing consent</dt>
+                <dd>{bailRequest.consent_marketplace_share ? "Recorded" : "Not recorded"}</dd>
+              </div>
+              <div>
+                <dt>No legal advice acknowledgement</dt>
+                <dd>{bailRequest.consent_no_legal_advice ? "Recorded" : "Not recorded"}</dd>
+              </div>
+              <div>
+                <dt>Terms and privacy agreement</dt>
+                <dd>{bailRequest.consent_terms_privacy ? "Recorded" : "Not recorded"}</dd>
+              </div>
+              <div>
+                <dt>Consented at</dt>
+                <dd>{formatDateTime(bailRequest.consented_at)}</dd>
+              </div>
+            </dl>
+          </article>
+
           {selectedOffer ? (
             <article className="card selected-offer">
               <p className="eyebrow">Selected provider audit</p>
@@ -301,10 +328,14 @@ export function AdminBailRequestDetailPage() {
                         <dt>Financing</dt>
                         <dd>{offer.financing_available ? "Available" : "Not listed"}</dd>
                       </div>
-                      <div>
-                        <dt>Outcome</dt>
-                        <dd>{offer.status === "selected" ? "Selected" : offer.status === "declined" ? "Declined" : "Open"}</dd>
-                      </div>
+                        <div>
+                          <dt>Outcome</dt>
+                          <dd>{offer.status === "selected" ? "Selected" : offer.status === "declined" ? "Declined" : "Open"}</dd>
+                        </div>
+                        <div>
+                          <dt>Created</dt>
+                          <dd>{formatDateTime(offer.created_at)}</dd>
+                        </div>
                       {offer.collateral_notes ? (
                         <div className="agency-review-notes">
                           <dt>Collateral notes</dt>

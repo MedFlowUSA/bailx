@@ -138,6 +138,14 @@ export function AgencyDashboardPage() {
           <article className="card agency-command-card">
             <p className="eyebrow">Linked agency</p>
             <h2>{agency.business_name || "Agency application"}</h2>
+            <div className="badge-row" aria-label="Agency marketplace trust signals">
+              <span className="soft-badge">
+                Marketplace review: {agency.verification_status.replace(/_/g, " ")}
+              </span>
+              <span className="soft-badge">Documents submitted: {documents.length}</span>
+              <span className="soft-badge">Offers submitted: {offers.length}</span>
+              <span className="soft-badge">Selected offers: {selectedOffers}</span>
+            </div>
             <dl className="agency-detail-grid">
               <div>
                 <dt>Service counties</dt>
@@ -155,7 +163,16 @@ export function AgencyDashboardPage() {
                 <dt>Contact</dt>
                 <dd>{agency.phone || agency.email || "Not listed"}</dd>
               </div>
+              <div>
+                <dt>Collateral categories</dt>
+                <dd>{agency.collateral_accepted?.join(", ") || "Not listed"}</dd>
+              </div>
             </dl>
+            <p className="compliance-note">
+              Marketplace trust signals are based on information submitted to
+              BailX and internal platform review. BailX does not guarantee
+              provider licensing status, pricing, release timing, or service outcome.
+            </p>
           </article>
         ) : null}
 

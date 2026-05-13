@@ -10,11 +10,18 @@ import { createAdminNote, getAdminNotesForEntity } from "../lib/adminNotes";
 import { getRequestStatusLabel } from "../lib/requestStatus";
 import type { AdminNote, AgencyOffer, BailRequest } from "../types";
 
-type RequestFilter = "all" | "submitted" | "offers_received" | "provider_selected" | "closed";
+type RequestFilter =
+  | "all"
+  | "submitted"
+  | "providers_notified"
+  | "offers_received"
+  | "provider_selected"
+  | "closed";
 
 const filters: { label: string; value: RequestFilter }[] = [
   { label: "All", value: "all" },
   { label: "Submitted", value: "submitted" },
+  { label: "Providers notified", value: "providers_notified" },
   { label: "Offers received", value: "offers_received" },
   { label: "Provider selected", value: "provider_selected" },
   { label: "Closed", value: "closed" },

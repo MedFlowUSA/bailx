@@ -27,6 +27,15 @@ a {
   text-decoration: none;
 }
 
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #ff9a3d;
+  outline-offset: 3px;
+}
+
 button,
 input,
 select,
@@ -387,6 +396,25 @@ h2 {
   font-size: 0.9rem;
 }
 
+.site-footer p {
+  margin-bottom: 0.75rem;
+}
+
+.footer-links,
+.badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.footer-links a,
+.legal-page a {
+  color: #0b4f9f;
+  font-weight: 900;
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
+}
+
 .page-section.narrow {
   max-width: 900px;
 }
@@ -395,6 +423,16 @@ h2 {
   display: grid;
   gap: 1rem;
   margin-top: 1.5rem;
+}
+
+.required-marker {
+  width: fit-content;
+  border-radius: 999px;
+  padding: 0.1rem 0.45rem;
+  color: #8f2500;
+  background: #ffe7dc;
+  font-size: 0.72rem;
+  font-weight: 900;
 }
 
 .form-grid {
@@ -418,6 +456,10 @@ h2 {
   border: 1px solid #d7e0ec;
   border-radius: 8px;
   padding: 0.75rem;
+}
+
+.check-option span {
+  font-weight: 700;
 }
 
 .check-option input {
@@ -472,6 +514,21 @@ h2 {
   background: #ffe7dc;
 }
 
+.disclosure-box,
+.trust-signal-panel {
+  display: grid;
+  gap: 0.75rem;
+  border: 1px solid #d7e0ec;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #f8fbff;
+}
+
+.disclosure-box p,
+.trust-signal-panel p {
+  margin: 0;
+}
+
 .compliance-note {
   border-left: 4px solid #ff9a3d;
   margin: 0;
@@ -497,7 +554,8 @@ h2 {
 }
 
 .status-pill,
-.tier-badge {
+.tier-badge,
+.soft-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -508,6 +566,11 @@ h2 {
   background: #dff9eb;
   font-size: 0.82rem;
   font-weight: 900;
+}
+
+.soft-badge {
+  color: #314054;
+  background: #edf4fb;
 }
 
 .status-pill.urgent {
@@ -696,6 +759,20 @@ h2 {
 .selected-offer {
   border: 2px solid #0b84ff;
   box-shadow: 0 0 0 4px rgba(11, 132, 255, 0.14);
+}
+
+.declined-offer {
+  opacity: 0.82;
+}
+
+.legal-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.legal-grid {
+  display: grid;
+  gap: 1rem;
 }
 
 .summary-grid {
@@ -1033,6 +1110,10 @@ h2 {
 
   .trust-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .legal-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .form-grid {
