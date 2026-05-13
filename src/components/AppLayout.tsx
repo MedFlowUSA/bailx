@@ -10,6 +10,31 @@ const navItems = [
   { to: "/admin/dashboard", label: "Admin" },
 ];
 
+const roleNavItems: Record<Profile["role"], Array<{ to: string; label: string }>> = {
+  consumer: [
+    { to: "/consumer/dashboard", label: "My Requests" },
+    { to: "/get-help-now", label: "New Request" },
+    { to: "/consumer-disclosures", label: "Disclosures" },
+  ],
+  agency: [
+    { to: "/agency/dashboard", label: "Agency Home" },
+    { to: "/agency/onboarding", label: "Onboarding" },
+    { to: "/agency/leads", label: "Leads" },
+    { to: "/agency/apply", label: "Agency Info" },
+  ],
+  admin: [
+    { to: "/admin/dashboard", label: "Admin Home" },
+    { to: "/admin/agencies", label: "Agencies" },
+    { to: "/admin/agency-documents", label: "Documents" },
+    { to: "/admin/bail-requests", label: "Requests" },
+    { to: "/admin/notifications", label: "Notifications" },
+  ],
+  attorney: [
+    { to: "/attorneys", label: "Attorney Ads" },
+    { to: "/compliance", label: "Compliance" },
+  ],
+};
+
 export function AppLayout() {
   const [profile, setProfile] = useState<Profile | null>(null);
 
@@ -56,12 +81,11 @@ export function AppLayout() {
           {profile ? (
             <>
               <NavLink to={getDashboardPathForRole(profile.role)}>Dashboard</NavLink>
-              {profile.role === "admin" ? (
-                <>
-                  <NavLink to="/admin/agency-documents">Agency Documents</NavLink>
-                  <NavLink to="/admin/notifications">Notifications</NavLink>
-                </>
-              ) : null}
+              {roleNavItems[profile.role].map((item) => (
+                <NavLink key={item.to} to={item.to}>
+                  {item.label}
+                </NavLink>
+              ))}
               <NavLink to="/auth/sign-out">Sign Out</NavLink>
             </>
           ) : (

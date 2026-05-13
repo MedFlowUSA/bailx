@@ -173,6 +173,9 @@ export type NotificationEvent = {
   error_message?: string | null;
   created_at: string;
   processed_at?: string | null;
+  retry_count?: number;
+  last_attempt_at?: string | null;
+  skipped_reason?: string | null;
 };
 
 export type BailXTables = {

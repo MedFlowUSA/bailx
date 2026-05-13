@@ -39,6 +39,18 @@ export type NotificationEventsResult =
       error: string;
     };
 
+export type NotificationEventAdminUpdate = Partial<
+  Pick<
+    NotificationEvent,
+    | "status"
+    | "error_message"
+    | "processed_at"
+    | "retry_count"
+    | "last_attempt_at"
+    | "skipped_reason"
+  >
+>;
+
 const mockNotificationEvents: NotificationEvent[] = [];
 
 function createMockEvent(input: CreateNotificationEventInput): NotificationEvent {
@@ -56,6 +68,9 @@ function createMockEvent(input: CreateNotificationEventInput): NotificationEvent
     error_message: null,
     created_at: new Date().toISOString(),
     processed_at: null,
+    retry_count: 0,
+    last_attempt_at: null,
+    skipped_reason: null,
   };
 }
 
@@ -159,6 +174,35 @@ export async function markNotificationEventFailed(
   return updateNotificationEventStatus(id, "failed", errorMessage);
 }
 
+export async function updateNotificationEventForAdmin(
+  id: string,
+  updates: NotificationEventAdminUpdate,
+): Promise<NotificationEventMutationResult> {
+  if (!isSupabaseConfigured || !supabase) {
+    const event = mockNotificationEvents.find((item) => item.id === id);
+
+    if (!event) {
+      return { ok: false, error: "Notification event not found." };
+    }
+
+    Object.assign(event, updates);
+    return { ok: true, event, mocked: true };
+  }
+
+  const { data, error } = await supabase
+    .from("notification_events")
+    .update(updates)
+    .eq("id", id)
+    .select("*")
+    .single();
+
+  if (error) {
+    return { ok: false, error: error.message || "Unable to update notification event." };
+  }
+
+  return { ok: true, event: data as NotificationEvent, mocked: false };
+}
+
 async function updateNotificationEventStatus(
   id: string,
   status: Extract<NotificationStatus, "processed" | "failed">,
@@ -174,15 +218,18 @@ async function updateNotificationEventStatus(
     event.status = status;
     event.error_message = errorMessage;
     event.processed_at = new Date().toISOString();
+    event.last_attempt_at = event.processed_at;
     return { ok: true, event, mocked: true };
   }
 
+  const now = new Date().toISOString();
   const { data, error } = await supabase
     .from("notification_events")
     .update({
       status,
       error_message: errorMessage,
-      processed_at: new Date().toISOString(),
+      processed_at: now,
+      last_attempt_at: now,
     })
     .eq("id", id)
     .select("*")

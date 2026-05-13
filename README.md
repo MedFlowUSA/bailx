@@ -303,6 +303,27 @@ competing offer decline, and request status update happen atomically.
 request intake. The agency lead inbox remains read-only so refreshes do not
 create duplicate match events.
 
+## Notification Sender Worker QA
+
+1. Apply migration `021_notification_event_retry_metadata.sql`.
+2. Deploy the `process-notification-events` Supabase Edge Function with server-side
+   `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`.
+3. Sign in as admin.
+4. Open `/admin/notifications`.
+5. Confirm status, channel, and event type filters work.
+6. Confirm pending events are visible.
+7. Click Process pending notifications.
+8. Confirm pending events move to processed, skipped, or failed.
+9. Create or locate a test event missing required recipient data.
+10. Confirm it becomes skipped with a skipped reason.
+11. Create or locate a test event with `payload.test_force_fail = true`.
+12. Confirm it becomes failed with an error message.
+13. Retry a failed event.
+14. Confirm `retry_count` increments and `last_attempt_at` updates.
+15. Mark a pending or failed event skipped and confirm admin activity is captured
+    if the admin notes table supports the current activity pattern.
+16. Run `npm run build`.
+
 ## Notification Safety Notes
 
 - `notification_events` are queued records only. BailX does not send SMS or
@@ -312,8 +333,8 @@ create duplicate match events.
   submission, provider selection, agency review, or document review flows.
 - Payloads should stay minimal and avoid full notes, document paths, or large
   copied records.
-- A future worker or Supabase Edge Function should process pending events and
-  mark them `processed`, `failed`, or `skipped`.
+- The current Edge Function uses a simulated sender adapter only. Real provider
+  integrations should be added server-side later, never in React.
 
 ## Status Timeline Test
 

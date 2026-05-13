@@ -11,6 +11,29 @@ import type { AgencyOffer, BailRequest } from "../types";
 
 const activeStatuses = new Set(["submitted", "providers_notified", "offers_received", "provider_selected"]);
 
+const consumerWorkflow = [
+  "Submit a request with defendant, jail, bond, language, and collateral details.",
+  "Approved independent providers may review the request if it matches their service area.",
+  "Compare offers by down payment, timing estimate, financing availability, collateral notes, and provider message.",
+  "Choose whether to contact a provider directly and get all terms in writing.",
+];
+
+const emergencyPacket = [
+  "Defendant full legal name and date of birth if available.",
+  "Jail, city, county, booking number, or case number if known.",
+  "Bond amount and charges if they have been posted.",
+  "Requester phone, email, preferred language, and best callback window.",
+  "Collateral categories available, such as cash, vehicle title, or property.",
+];
+
+const providerQuestions = [
+  "What is the total amount due today?",
+  "Is the premium refundable or non-refundable?",
+  "What collateral is required and when is it released?",
+  "Does financing include fees or interest?",
+  "Who is the main point of contact after paperwork starts?",
+];
+
 export function ConsumerDashboardPage() {
   const [bailRequests, setBailRequests] = useState<BailRequest[]>([]);
   const [offerCounts, setOfferCounts] = useState<Record<string, number>>({});
@@ -103,6 +126,93 @@ export function ConsumerDashboardPage() {
           <strong>{summary.closed}</strong>
         </article>
       </div>
+
+      <section className="dashboard-grid">
+        <Link className="card nav-card agency-command-card" to="/get-help-now">
+          <p className="eyebrow">Start here</p>
+          <h2>Submit an emergency request</h2>
+          <p>
+            Share defendant, jail, bond, language, and collateral details so
+            approved independent providers can review the request.
+          </p>
+        </Link>
+        <Link className="card nav-card agency-command-card" to="/consumer-disclosures">
+          <p className="eyebrow">Before you choose</p>
+          <h2>Review consumer disclosures</h2>
+          <p>
+            Understand premiums, collateral, financing, provider terms, and why
+            BailX does not replace legal counsel.
+          </p>
+        </Link>
+        <article className="card agency-command-card">
+          <p className="eyebrow">Offer comparison</p>
+          <h2>Compare provider responses</h2>
+          <p>
+            Once offers arrive, open a request detail page to compare down
+            payment, timing estimates, financing, collateral notes, and messages.
+          </p>
+        </article>
+        <article className="card agency-command-card">
+          <p className="eyebrow">Family command center</p>
+          <h2>Track status and selected provider</h2>
+          <p>
+            Signed-in consumers can see request status, offer counts, selected
+            provider details, and next-step guidance in one place.
+          </p>
+        </article>
+      </section>
+
+      <section className="dashboard-grid">
+        <article className="card guidance-card">
+          <p className="eyebrow">What happens here</p>
+          <h2>Customer workflow</h2>
+          <ol className="question-list">
+            {consumerWorkflow.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ol>
+        </article>
+        <article className="card guidance-card">
+          <p className="eyebrow">Prepare before submitting</p>
+          <h2>Emergency request packet</h2>
+          <ul className="checklist">
+            {emergencyPacket.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </article>
+        <article className="card guidance-card">
+          <p className="eyebrow">Offer review</p>
+          <h2>Questions to ask providers</h2>
+          <ul className="question-list">
+            {providerQuestions.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </article>
+        <article className="card guidance-card">
+          <p className="eyebrow">Available customer features</p>
+          <h2>Portal tools</h2>
+          <dl className="agency-detail-grid">
+            <div>
+              <dt>Request tracking</dt>
+              <dd>View submitted, provider notified, offers received, and selected provider states.</dd>
+            </div>
+            <div>
+              <dt>Offer comparison</dt>
+              <dd>Review offer details without BailX ranking, scoring, or guaranteeing any provider.</dd>
+            </div>
+            <div>
+              <dt>Selected provider panel</dt>
+              <dd>After selection, contact details appear so terms can be confirmed directly.</dd>
+            </div>
+            <div>
+              <dt>Disclosure center</dt>
+              <dd>Read consumer disclosures, terms, privacy, and marketplace limitations.</dd>
+            </div>
+          </dl>
+        </article>
+      </section>
 
       <div className="dashboard-grid">
         {isLoading ? <p>Loading requests...</p> : null}

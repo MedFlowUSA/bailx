@@ -19,6 +19,30 @@ function formatTierBadge(value?: string | null): "Starter" | "Pro" | "Priority" 
   }
 }
 
+const agencyWorkflow = [
+  "Create or update the agency application with contact, license, county, language, and collateral details.",
+  "Upload verification documents for admin review.",
+  "Wait for marketplace eligibility approval before matched leads unlock.",
+  "Review eligible requests by service county and submit responsible offer terms.",
+  "Track submitted and selected offers from the agency dashboard.",
+];
+
+const documentChecklist = [
+  "Bail license or agency authorization document.",
+  "Business registration or ownership information.",
+  "Insurance, bond, or other verification documents when requested.",
+  "Current service counties and language coverage.",
+  "Clear collateral categories accepted by the agency.",
+];
+
+const offerStandards = [
+  "Include only terms your agency can discuss directly with the requester.",
+  "Provide a realistic release timing estimate, not a guarantee.",
+  "Disclose financing availability without hiding fees or conditions.",
+  "Explain collateral requirements clearly.",
+  "Avoid legal advice, outcome promises, or misleading urgency claims.",
+];
+
 export function AgencyDashboardPage() {
   const [agency, setAgency] = useState<Agency | null>(null);
   const [documents, setDocuments] = useState<AgencyDocument[]>([]);
@@ -132,6 +156,93 @@ export function AgencyDashboardPage() {
           </article>
         </div>
       ) : null}
+
+      <section className="dashboard-grid">
+        <Link className="card nav-card agency-command-card" to="/agency/onboarding">
+          <p className="eyebrow">Verification</p>
+          <h2>Complete agency onboarding</h2>
+          <p>
+            Submit agency profile details and upload requested verification
+            documents for BailX marketplace eligibility review.
+          </p>
+        </Link>
+        <Link className="card nav-card agency-command-card" to="/agency/leads">
+          <p className="eyebrow">Lead inbox</p>
+          <h2>{isApproved ? "Review matched requests" : "Leads unlock after approval"}</h2>
+          <p>
+            Approved agencies can review eligible requests matched by service
+            county and submit clear offer terms for consumer comparison.
+          </p>
+        </Link>
+        <article className="card agency-command-card">
+          <p className="eyebrow">Offer workflow</p>
+          <h2>Submit transparent offers</h2>
+          <p>
+            Offers capture down payment, estimated release timing, financing
+            availability, collateral notes, and provider messages.
+          </p>
+        </article>
+        <Link className="card nav-card agency-command-card" to="/agency/apply">
+          <p className="eyebrow">Marketplace expectations</p>
+          <h2>Review agency requirements</h2>
+          <p>
+            See how BailX positions agency participation, document review,
+            service county matching, and compliance expectations.
+          </p>
+        </Link>
+      </section>
+
+      <section className="dashboard-grid">
+        <article className="card guidance-card">
+          <p className="eyebrow">What happens here</p>
+          <h2>Agency workflow</h2>
+          <ol className="question-list">
+            {agencyWorkflow.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ol>
+        </article>
+        <article className="card guidance-card">
+          <p className="eyebrow">Verification file</p>
+          <h2>Document readiness checklist</h2>
+          <ul className="checklist">
+            {documentChecklist.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </article>
+        <article className="card guidance-card">
+          <p className="eyebrow">Offer quality</p>
+          <h2>Marketplace offer standards</h2>
+          <ul className="question-list">
+            {offerStandards.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </article>
+        <article className="card guidance-card">
+          <p className="eyebrow">Available agency features</p>
+          <h2>Portal tools</h2>
+          <dl className="agency-detail-grid">
+            <div>
+              <dt>Onboarding</dt>
+              <dd>Submit agency profile, service counties, languages, license, and collateral coverage.</dd>
+            </div>
+            <div>
+              <dt>Document upload</dt>
+              <dd>Upload private verification files for admin review through the onboarding flow.</dd>
+            </div>
+            <div>
+              <dt>Lead inbox</dt>
+              <dd>Approved agencies can review eligible requests matched by county.</dd>
+            </div>
+            <div>
+              <dt>Offer tracking</dt>
+              <dd>Track submitted offers and selected outcomes without paid placement logic.</dd>
+            </div>
+          </dl>
+        </article>
+      </section>
 
       <div className="dashboard-grid">
         {agency ? (
