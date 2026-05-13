@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { MissingItemsList } from "../components/MissingItemsList";
+import { NextActionCard } from "../components/NextActionCard";
+import { ProgressSummaryCard } from "../components/ProgressSummaryCard";
 import { RequestStatusTimeline } from "../components/RequestStatusTimeline";
 import {
   getOfferCountsForBailRequests,
@@ -7,6 +10,7 @@ import {
 } from "../lib/agencyOffers";
 import { getRequestStatusLabel } from "../lib/requestStatus";
 import { getRecentConsumerBailRequests } from "../lib/consumerRequests";
+import { getCustomerRequestProgress } from "../lib/customerProgress";
 import type { AgencyOffer, BailRequest } from "../types";
 
 const activeStatuses = new Set(["submitted", "providers_notified", "offers_received", "provider_selected"]);
@@ -86,6 +90,14 @@ export function ConsumerDashboardPage() {
     selected: bailRequests.filter((request) => request.status === "provider_selected").length,
     closed: bailRequests.filter((request) => ["closed", "cancelled"].includes(request.status)).length,
   };
+  const activeRequest =
+    bailRequests.find((request) => activeStatuses.has(request.status)) || bailRequests[0] || null;
+  const activeRequestProgress = activeRequest
+    ? getCustomerRequestProgress(activeRequest, {
+        offerCount: offerCounts[activeRequest.id] || 0,
+        hasSelectedProvider: Boolean(selectedOffers[activeRequest.id]),
+      })
+    : null;
 
   return (
     <section className="page-section">
@@ -108,6 +120,76 @@ export function ConsumerDashboardPage() {
         </div>
       </div>
 
+      {!isLoading && bailRequests.length === 0 ? (
+        <section className="dashboard-grid">
+          <article className="card empty-state-card">
+            <p className="eyebrow">Start here</p>
+            <h2>Start your first emergency bail request</h2>
+            <p>Start a request to begin comparing provider responses.</p>
+            <Link className="button primary" to="/get-help-now">
+              Start Emergency Request
+            </Link>
+          </article>
+          <article className="card guidance-card">
+            <p className="eyebrow">What you'll need</p>
+            <h2>Request packet basics</h2>
+            <ul className="checklist">
+              {emergencyPacket.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </article>
+          <article className="card guidance-card">
+            <p className="eyebrow">How BailX works</p>
+            <h2>Marketplace routing</h2>
+            <ol className="question-list">
+              {consumerWorkflow.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ol>
+          </article>
+          <Link className="card nav-card guidance-card" to="/consumer-disclosures">
+            <p className="eyebrow">Before submitting</p>
+            <h2>Disclosures before submitting</h2>
+            <p>
+              Review BailX marketplace limits, provider terms, collateral, premiums, financing,
+              and legal-support disclosures.
+            </p>
+          </Link>
+        </section>
+      ) : null}
+
+      {activeRequest && activeRequestProgress ? (
+        <section className="dashboard-grid">
+          <ProgressSummaryCard
+            eyebrow="Active request progress"
+            title="Request Packet Completion"
+            completionPercent={activeRequestProgress.completionPercent}
+            statusLabel={activeRequestProgress.statusLabel}
+            statusTone={activeRequestProgress.statusTone}
+            completedCount={activeRequestProgress.completedItems.length}
+            totalCount={
+              activeRequestProgress.completedItems.length + activeRequestProgress.missingItems.length
+            }
+          />
+          <MissingItemsList
+            title="Missing Information"
+            items={activeRequestProgress.missingItems}
+            emptyMessage="The core request packet is complete. Keep contact information available for provider follow-up."
+          />
+          <NextActionCard action={activeRequestProgress.nextRecommendedAction}>
+            <div className="hero-actions">
+              <Link className="button primary" to={`/consumer/requests/${activeRequest.id}`}>
+                Open Request
+              </Link>
+              <Link className="button secondary" to="/get-help-now">
+                Start Another Request
+              </Link>
+            </div>
+          </NextActionCard>
+        </section>
+      ) : null}
+
       <div className="summary-grid">
         <article className="card summary-card">
           <span>Active requests</span>
@@ -122,8 +204,19 @@ export function ConsumerDashboardPage() {
           <strong>{summary.selected}</strong>
         </article>
         <article className="card summary-card">
-          <span>Closed requests</span>
-          <strong>{summary.closed}</strong>
+          <span>Selected provider status</span>
+          <strong>{Object.keys(selectedOffers).length > 0 ? "Selected" : "None"}</strong>
+        </article>
+      </div>
+
+      <div className="summary-grid">
+        <article className="card summary-card">
+          <span>Offer status</span>
+          <strong>{summary.offers > 0 ? `${summary.offers} offers` : "Watching"}</strong>
+        </article>
+        <article className="card summary-card">
+          <span>Customer tools</span>
+          <strong>{bailRequests.length > 0 ? "Ready" : "Start"}</strong>
         </article>
       </div>
 
@@ -218,20 +311,21 @@ export function ConsumerDashboardPage() {
         {isLoading ? <p>Loading requests...</p> : null}
         {statusMessage ? <p className="form-message success">{statusMessage}</p> : null}
         {errorMessage ? <p className="form-message error">{errorMessage}</p> : null}
-        {!isLoading && bailRequests.length === 0 ? (
-          <article className="card empty-state-card">
-            <h2>No active requests yet</h2>
-            <p>
-              Submit an emergency bail request to start provider review. Anonymous
-              intake is available, but signed-in customers can track requests here.
-            </p>
-            <Link className="button primary" to="/get-help-now">
-              Start Emergency Request
-            </Link>
-          </article>
-        ) : null}
         {bailRequests.map((request) => (
           <article className="card request-portal-card" key={request.id}>
+            {(() => {
+              const progress = getCustomerRequestProgress(request, {
+                offerCount: offerCounts[request.id] || 0,
+                hasSelectedProvider: Boolean(selectedOffers[request.id]),
+              });
+
+              return (
+                <div className="badge-row">
+                  <span className="soft-badge">{progress.completionPercent}% packet complete</span>
+                  <span className={`status-pill ${progress.statusTone}`}>{progress.statusLabel}</span>
+                </div>
+              );
+            })()}
             <div className="request-card-header">
               <div>
                 <p className="eyebrow">{getRequestStatusLabel(request.status)}</p>
@@ -250,7 +344,12 @@ export function ConsumerDashboardPage() {
                 {selectedOffers[request.id].agencies?.business_name || "Licensed provider"}
               </p>
             ) : (
-              <p>Review each offer carefully and confirm all terms directly with the provider.</p>
+              <p>
+                {getCustomerRequestProgress(request, {
+                  offerCount: offerCounts[request.id] || 0,
+                  hasSelectedProvider: false,
+                }).nextRecommendedAction}
+              </p>
             )}
             <Link className="button primary" to={`/consumer/requests/${request.id}`}>
               View Offers & Details
@@ -259,7 +358,8 @@ export function ConsumerDashboardPage() {
         ))}
       </div>
       <p className="compliance-note">
-        BailX does not issue bonds, provide legal advice, or guarantee release outcomes.
+        BailX helps organize provider responses but does not guarantee release, price, financing,
+        collateral acceptance, or timing.
       </p>
     </section>
   );

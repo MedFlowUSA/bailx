@@ -1,10 +1,17 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { MissingItemsList } from "../components/MissingItemsList";
+import { NextActionCard } from "../components/NextActionCard";
+import { ProgressSummaryCard } from "../components/ProgressSummaryCard";
 import { SubscriptionTierBadge } from "../components/SubscriptionTierBadge";
 import { getCurrentAgencyApplication } from "../lib/agencies";
 import { getAgencyDocumentsForAgency } from "../lib/agencyDocuments";
 import { getAgencyLeads } from "../lib/agencyLeads";
 import { getAgencyOffers } from "../lib/agencyOffers";
+import {
+  countAgencyDocumentsByStatus,
+  getAgencyVerificationProgress,
+} from "../lib/agencyProgress";
 import type { Agency, AgencyDocument, AgencyOffer } from "../types";
 
 function formatTierBadge(value?: string | null): "Starter" | "Pro" | "Priority" {
@@ -95,11 +102,8 @@ export function AgencyDashboardPage() {
     void loadDashboard();
   }, []);
 
-  const approvedDocuments = documents.filter((document) => document.review_status === "approved").length;
-  const pendingDocuments = documents.filter((document) => document.review_status === "pending").length;
-  const moreInfoDocuments = documents.filter(
-    (document) => document.review_status === "more_info_requested",
-  ).length;
+  const documentCounts = countAgencyDocumentsByStatus(documents);
+  const agencyProgress = getAgencyVerificationProgress(agency, documents);
   const selectedOffers = offers.filter((offer) => offer.status === "selected").length;
   const isApproved = agency?.verification_status === "approved";
 
@@ -137,6 +141,39 @@ export function AgencyDashboardPage() {
       ) : null}
 
       {agency ? (
+        <section className="dashboard-grid">
+          <ProgressSummaryCard
+            eyebrow="Agency verification progress"
+            title="Marketplace readiness"
+            completionPercent={agencyProgress.completionPercent}
+            statusLabel={agencyProgress.statusLabel}
+            statusTone={agencyProgress.statusTone}
+            completedCount={agencyProgress.completedItems.length}
+            totalCount={
+              agencyProgress.completedItems.length +
+              agencyProgress.missingItems.length +
+              agencyProgress.pendingItems.length
+            }
+          />
+          <MissingItemsList
+            title="Missing verification items"
+            items={agencyProgress.missingItems}
+            emptyMessage="No core profile gaps are currently detected."
+          />
+          <NextActionCard action={agencyProgress.nextRecommendedAction}>
+            <div className="hero-actions">
+              <Link className="button primary" to={isApproved ? "/agency/leads" : "/agency/onboarding"}>
+                {isApproved ? "Open Leads" : "Update Verification File"}
+              </Link>
+              <Link className="button secondary" to="/agency/apply">
+                Review Requirements
+              </Link>
+            </div>
+          </NextActionCard>
+        </section>
+      ) : null}
+
+      {agency ? (
         <div className="summary-grid">
           <article className="card summary-card">
             <span>Agency status</span>
@@ -155,6 +192,59 @@ export function AgencyDashboardPage() {
             <strong>{selectedOffers}</strong>
           </article>
         </div>
+      ) : null}
+
+      {agency ? (
+        <section className="dashboard-grid">
+          <article className="card agency-command-card">
+            <p className="eyebrow">Document readiness</p>
+            <h2>{documents.length > 0 ? `${documents.length} uploaded` : "No documents uploaded"}</h2>
+            <dl className="agency-detail-grid">
+              <div>
+                <dt>Uploaded</dt>
+                <dd>{documentCounts.total}</dd>
+              </div>
+              <div>
+                <dt>Pending</dt>
+                <dd>{documentCounts.pending}</dd>
+              </div>
+              <div>
+                <dt>Approved</dt>
+                <dd>{documentCounts.approved}</dd>
+              </div>
+              <div>
+                <dt>More info requested</dt>
+                <dd>{documentCounts.more_info_requested}</dd>
+              </div>
+              <div>
+                <dt>Rejected</dt>
+                <dd>{documentCounts.rejected}</dd>
+              </div>
+            </dl>
+            {documents.length === 0 ? (
+              <p>Upload verification documents to begin marketplace review.</p>
+            ) : null}
+          </article>
+          <article className="card agency-command-card">
+            <p className="eyebrow">Lead access status</p>
+            <h2>{isApproved ? "Lead access active" : "Lead access limited"}</h2>
+            <p>
+              {isApproved
+                ? leadCount > 0
+                  ? `${leadCount} matched leads are currently available.`
+                  : "No matched leads are available yet."
+                : "Lead access begins after marketplace verification."}
+            </p>
+          </article>
+          <article className="card agency-command-card">
+            <p className="eyebrow">Offer workflow</p>
+            <h2>{offers.length} offers submitted</h2>
+            <p>
+              Submit clear, accurate offers. All provider terms are handled directly between the
+              provider and consumer.
+            </p>
+          </article>
+        </section>
       ) : null}
 
       <section className="dashboard-grid">
@@ -297,18 +387,26 @@ export function AgencyDashboardPage() {
             </div>
             <div>
               <dt>Pending review</dt>
-              <dd>{pendingDocuments}</dd>
+              <dd>{documentCounts.pending}</dd>
             </div>
             <div>
               <dt>Approved documents</dt>
-              <dd>{approvedDocuments}</dd>
+              <dd>{documentCounts.approved}</dd>
             </div>
             <div>
               <dt>More info requested</dt>
-              <dd>{moreInfoDocuments}</dd>
+              <dd>{documentCounts.more_info_requested}</dd>
+            </div>
+            <div>
+              <dt>Rejected</dt>
+              <dd>{documentCounts.rejected}</dd>
             </div>
           </dl>
-          <p>Upload license and verification documents after onboarding.</p>
+          <p>
+            {documents.length === 0
+              ? "Upload verification documents to begin marketplace review."
+              : "Monitor document review status and respond to admin requests."}
+          </p>
           <Link className="button secondary" to="/agency/onboarding">
             Manage Documents
           </Link>

@@ -369,6 +369,24 @@ create duplicate match events.
 10. Confirm claim explanation and disclaimers.
 11. Run `npm run build`.
 
+## Account Progress + Next Action QA
+
+1. Sign in as a consumer with no requests.
+2. Confirm the dashboard shows start request guidance, what you will need, how
+   BailX works, and disclosures before submitting.
+3. Submit a partial request if possible.
+4. Confirm missing items appear.
+5. Confirm the next recommended action appears.
+6. Confirm the request detail progress card appears.
+7. Sign in as an agency before approval.
+8. Confirm verification progress appears.
+9. Confirm missing documents and document readiness appear.
+10. Upload or review documents if available.
+11. Confirm agency readiness updates.
+12. Sign in as an approved agency.
+13. Confirm lead access messaging changes.
+14. Run `npm run build`.
+
 ## Status Timeline Test
 
 1. Submit a request from `/get-help-now`.

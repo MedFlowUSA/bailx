@@ -2,11 +2,15 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { AgencyOfferCard } from "../components/AgencyOfferCard";
 import { CustomerNextSteps } from "../components/CustomerNextSteps";
+import { MissingItemsList } from "../components/MissingItemsList";
+import { NextActionCard } from "../components/NextActionCard";
 import { ProviderQuestions } from "../components/ProviderQuestions";
+import { ProgressSummaryCard } from "../components/ProgressSummaryCard";
 import { RequestStatusTimeline } from "../components/RequestStatusTimeline";
 import { SelectedProviderPanel } from "../components/SelectedProviderPanel";
 import { getOffersForBailRequest, selectAgencyOffer } from "../lib/agencyOffers";
 import { getBailRequestById } from "../lib/consumerRequests";
+import { getCustomerRequestProgress } from "../lib/customerProgress";
 import { getRequestStatusLabel } from "../lib/requestStatus";
 import type { AgencyOffer, BailRequest } from "../types";
 
@@ -45,6 +49,12 @@ export function ConsumerRequestDetailPage() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const selectedOffer = offers.find((offer) => offer.status === "selected");
+  const requestProgress = bailRequest
+    ? getCustomerRequestProgress(bailRequest, {
+        offerCount: offers.length,
+        hasSelectedProvider: Boolean(selectedOffer),
+      })
+    : null;
 
   async function loadRequestAndOffers() {
     if (!id) {
@@ -150,6 +160,37 @@ export function ConsumerRequestDetailPage() {
       ) : null}
 
       {selectedOffer ? <SelectedProviderPanel offer={selectedOffer} /> : null}
+
+      {bailRequest && requestProgress ? (
+        <section className="dashboard-grid">
+          <ProgressSummaryCard
+            eyebrow="Request progress"
+            title="Packet readiness"
+            completionPercent={requestProgress.completionPercent}
+            statusLabel={requestProgress.statusLabel}
+            statusTone={requestProgress.statusTone}
+            completedCount={requestProgress.completedItems.length}
+            totalCount={requestProgress.completedItems.length + requestProgress.missingItems.length}
+          />
+          <MissingItemsList
+            title="Missing items"
+            items={requestProgress.missingItems}
+            emptyMessage="The core request packet is complete."
+          />
+          <NextActionCard action={requestProgress.nextRecommendedAction}>
+            <dl className="agency-detail-grid">
+              <div>
+                <dt>Offer count</dt>
+                <dd>{offers.length}</dd>
+              </div>
+              <div>
+                <dt>Provider selected</dt>
+                <dd>{selectedOffer ? "Yes" : "No"}</dd>
+              </div>
+            </dl>
+          </NextActionCard>
+        </section>
+      ) : null}
 
       {bailRequest ? (
         <section className="section-grid customer-detail-grid">

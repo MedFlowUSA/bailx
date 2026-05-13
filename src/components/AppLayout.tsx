@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet } from "react-router-dom";
-import { getCurrentProfile, getDashboardPathForRole } from "../lib/auth";
+import { getCurrentProfile } from "../lib/auth";
 import { isSupabaseConfigured, supabase } from "../lib/supabase";
 import type { Profile } from "../types";
 
@@ -12,24 +12,26 @@ const navItems = [
 
 const roleNavItems: Record<Profile["role"], Array<{ to: string; label: string }>> = {
   consumer: [
+    { to: "/consumer/dashboard", label: "Dashboard" },
     { to: "/consumer/dashboard", label: "My Requests" },
-    { to: "/get-help-now", label: "New Request" },
+    { to: "/get-help-now", label: "Start Request" },
     { to: "/consumer-disclosures", label: "Disclosures" },
   ],
   agency: [
-    { to: "/agency/dashboard", label: "Agency Home" },
-    { to: "/agency/onboarding", label: "Onboarding" },
+    { to: "/agency/dashboard", label: "Dashboard" },
     { to: "/agency/leads", label: "Leads" },
-    { to: "/agency/apply", label: "Agency Info" },
+    { to: "/agency/onboarding", label: "Documents" },
+    { to: "/agency/onboarding", label: "Agency File" },
+    { to: "/agency/apply", label: "Apply/Profile" },
     { to: "/agency/claim", label: "Claim Listing" },
   ],
   admin: [
-    { to: "/admin/dashboard", label: "Admin Home" },
+    { to: "/admin/dashboard", label: "Dashboard" },
+    { to: "/admin/bail-requests", label: "Bail Requests" },
     { to: "/admin/agencies", label: "Agencies" },
-    { to: "/admin/provider-directory", label: "Directory" },
-    { to: "/admin/agency-documents", label: "Documents" },
-    { to: "/admin/bail-requests", label: "Requests" },
+    { to: "/admin/agency-documents", label: "Agency Documents" },
     { to: "/admin/notifications", label: "Notifications" },
+    { to: "/admin/provider-directory", label: "Directory" },
   ],
   attorney: [
     { to: "/attorneys", label: "Attorney Ads" },
@@ -82,9 +84,8 @@ export function AppLayout() {
           ))}
           {profile ? (
             <>
-              <NavLink to={getDashboardPathForRole(profile.role)}>Dashboard</NavLink>
               {roleNavItems[profile.role].map((item) => (
-                <NavLink key={item.to} to={item.to}>
+                <NavLink key={`${item.to}-${item.label}`} to={item.to}>
                   {item.label}
                 </NavLink>
               ))}
