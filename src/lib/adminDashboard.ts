@@ -1,4 +1,5 @@
 import type { Agency, AgencyOffer, BailRequest } from "../types";
+import { mockAgencies } from "./agencies";
 import { isSupabaseConfigured, supabase } from "./supabase";
 
 export type AdminDashboardSummary = {
@@ -87,28 +88,10 @@ const mockAdminRequests: BailRequest[] = [
   },
 ];
 
-const mockAdminAgencies: Agency[] = [
-  {
-    id: "mock-admin-agency-1",
-    business_name: "Metro Release Partners",
-    contact_name: "Avery Collins",
-    phone: "(555) 214-0198",
-    email: "ops@metrorelease.example",
-    license_number: "CA-BAIL-10293",
-    service_counties: ["Los Angeles", "Riverside"],
-    languages: ["English", "Spanish"],
-    collateral_accepted: ["Cash", "Vehicle title"],
-    verification_status: "pending",
-    subscription_tier: "pro",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
-
 const mockSelectedOffers: AdminSelectedOffer[] = [
   {
     id: "mock-selected-offer-1",
-    agency_id: "mock-admin-agency-1",
+    agency_id: "mock-agency-1",
     bail_request_id: "mock-admin-request-1",
     down_payment: 2500,
     estimated_release_time: "2-4 hours after paperwork",
@@ -135,7 +118,7 @@ export async function getAdminDashboardSummary(): Promise<AdminDashboardSummaryR
     return {
       ok: true,
       mocked: true,
-      summary: buildSummary(mockAdminRequests, mockAdminAgencies, mockSelectedOffers.length),
+      summary: buildSummary(mockAdminRequests, mockAgencies, mockSelectedOffers.length),
     };
   }
 
@@ -189,7 +172,7 @@ export async function getRecentAdminBailRequests(limit = 8): Promise<AdminBailRe
 
 export async function getRecentAgencyApplications(limit = 50): Promise<AdminAgenciesResult> {
   if (!isSupabaseConfigured || !supabase) {
-    return { ok: true, agencies: mockAdminAgencies, mocked: true };
+    return { ok: true, agencies: mockAgencies, mocked: true };
   }
 
   const { data, error } = await supabase

@@ -55,7 +55,7 @@ export type CurrentAgencyResult =
       error: string;
     };
 
-const mockAgencies: Agency[] = [
+export const mockAgencies: Agency[] = [
   {
     id: "mock-agency-1",
     business_name: "Metro Release Partners",
@@ -244,10 +244,20 @@ export async function updateAgencyVerificationStatus(
     };
   }
 
+  const profile = await getCurrentProfile();
+  const { error: noteError } = await supabase.from("admin_notes").insert({
+    related_table: "agencies",
+    related_id: agencyId,
+    note: `Agency verification status changed to ${status}.`,
+    created_by: profile?.id || null,
+  });
+
   return {
     ok: true,
     id: agencyId,
     mocked: false,
-    message: `Agency marked ${status}.`,
+    message: noteError
+      ? `Agency marked ${status}. Audit note could not be saved: ${noteError.message}`
+      : `Agency marked ${status}.`,
   };
 }

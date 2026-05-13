@@ -24,7 +24,7 @@ export function AdminAgenciesPage() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  async function loadAgencies() {
+  async function loadAgencies(options: { preserveStatusMessage?: boolean } = {}) {
     setIsLoading(true);
     setErrorMessage(null);
 
@@ -37,9 +37,11 @@ export function AdminAgenciesPage() {
     }
 
     setAgencies(result.agencies);
-    setStatusMessage(
-      result.mocked ? "Showing mock agency applications until Supabase is configured." : null,
-    );
+    if (!options.preserveStatusMessage) {
+      setStatusMessage(
+        result.mocked ? "Showing mock agency applications until Supabase is configured." : null,
+      );
+    }
   }
 
   async function handleStatusUpdate(agencyId: string, status: AgencyVerificationStatus) {
@@ -56,7 +58,7 @@ export function AdminAgenciesPage() {
     }
 
     setStatusMessage(result.message);
-    await loadAgencies();
+    await loadAgencies({ preserveStatusMessage: true });
   }
 
   useEffect(() => {
@@ -74,7 +76,7 @@ export function AdminAgenciesPage() {
           <p>Review provider identity, coverage, collateral practices, and marketplace status.</p>
         </div>
         <div className="hero-actions">
-          <button className="button secondary" type="button" onClick={loadAgencies}>
+          <button className="button secondary" type="button" onClick={() => void loadAgencies()}>
             Refresh
           </button>
           <Link className="button secondary" to="/admin/agency-documents">
