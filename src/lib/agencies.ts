@@ -73,6 +73,13 @@ export const mockAgencies: Agency[] = [
   },
 ];
 
+const statusMessages: Record<AgencyVerificationStatus, string> = {
+  approved: "Agency approved.",
+  more_info_requested: "More information requested.",
+  pending: "Agency marked pending.",
+  rejected: "Agency rejected.",
+};
+
 function compactList(value: string[]) {
   return value.map((item) => item.trim()).filter(Boolean);
 }
@@ -210,7 +217,10 @@ export async function getCurrentAgencyApplication(): Promise<CurrentAgencyResult
 export async function updateAgencyVerificationStatus(
   agencyId: string,
   status: AgencyVerificationStatus,
+  reviewNotes = "",
 ): Promise<AgencyMutationResult> {
+  const trimmedNotes = reviewNotes.trim();
+
   if (!isSupabaseConfigured || !supabase) {
     const agency = mockAgencies.find((item) => item.id === agencyId);
 
@@ -221,20 +231,45 @@ export async function updateAgencyVerificationStatus(
       };
     }
 
+    const previousStatus = agency.verification_status;
     agency.verification_status = status;
+    agency.previous_verification_status = previousStatus;
+    agency.reviewed_by_profile_id = "mock-admin-profile";
+    agency.reviewed_at = new Date().toISOString();
+    agency.review_notes = trimmedNotes || null;
     agency.updated_at = new Date().toISOString();
 
     return {
       ok: true,
       id: agencyId,
       mocked: true,
-      message: `Agency marked ${status}.`,
+      message: statusMessages[status],
+    };
+  }
+
+  const profile = await getCurrentProfile();
+  const { data: existingAgency, error: lookupError } = await supabase
+    .from("agencies")
+    .select("verification_status")
+    .eq("id", agencyId)
+    .maybeSingle();
+
+  if (lookupError) {
+    return {
+      ok: false,
+      error: lookupError.message || "Unable to load current agency status.",
     };
   }
 
   const { error } = await supabase
     .from("agencies")
-    .update({ verification_status: status })
+    .update({
+      verification_status: status,
+      previous_verification_status: existingAgency?.verification_status || null,
+      reviewed_by_profile_id: profile?.id || null,
+      reviewed_at: new Date().toISOString(),
+      review_notes: trimmedNotes || null,
+    })
     .eq("id", agencyId);
 
   if (error) {
@@ -244,20 +279,10 @@ export async function updateAgencyVerificationStatus(
     };
   }
 
-  const profile = await getCurrentProfile();
-  const { error: noteError } = await supabase.from("admin_notes").insert({
-    related_table: "agencies",
-    related_id: agencyId,
-    note: `Agency verification status changed to ${status}.`,
-    created_by: profile?.id || null,
-  });
-
   return {
     ok: true,
     id: agencyId,
     mocked: false,
-    message: noteError
-      ? `Agency marked ${status}. Audit note could not be saved: ${noteError.message}`
-      : `Agency marked ${status}.`,
+    message: statusMessages[status],
   };
 }

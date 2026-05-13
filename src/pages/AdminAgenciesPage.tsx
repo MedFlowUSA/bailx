@@ -16,6 +16,14 @@ const filters: { label: string; value: AgencyFilter }[] = [
   { label: "Rejected", value: "rejected" },
 ];
 
+function formatStatus(value?: AgencyFilter | null) {
+  return value ? value.replace(/_/g, " ") : "Not recorded";
+}
+
+function formatReviewDate(value?: string | null) {
+  return value ? new Date(value).toLocaleString() : "Not reviewed";
+}
+
 export function AdminAgenciesPage() {
   const [agencies, setAgencies] = useState<Agency[]>([]);
   const [filter, setFilter] = useState<AgencyFilter>("pending");
@@ -23,6 +31,7 @@ export function AdminAgenciesPage() {
   const [isUpdatingId, setIsUpdatingId] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [reviewNotesByAgencyId, setReviewNotesByAgencyId] = useState<Record<string, string>>({});
 
   async function loadAgencies(options: { preserveStatusMessage?: boolean } = {}) {
     setIsLoading(true);
@@ -45,11 +54,19 @@ export function AdminAgenciesPage() {
   }
 
   async function handleStatusUpdate(agencyId: string, status: AgencyVerificationStatus) {
+    const reviewNotes = reviewNotesByAgencyId[agencyId]?.trim() || "";
+
+    if ((status === "more_info_requested" || status === "rejected") && !reviewNotes) {
+      setErrorMessage("Add review notes before requesting more information or rejecting.");
+      setStatusMessage(null);
+      return;
+    }
+
     setIsUpdatingId(agencyId);
     setErrorMessage(null);
     setStatusMessage(null);
 
-    const result = await updateAgencyVerificationStatus(agencyId, status);
+    const result = await updateAgencyVerificationStatus(agencyId, status, reviewNotes);
     setIsUpdatingId(null);
 
     if (!result.ok) {
@@ -58,6 +75,7 @@ export function AdminAgenciesPage() {
     }
 
     setStatusMessage(result.message);
+    setReviewNotesByAgencyId((current) => ({ ...current, [agencyId]: "" }));
     await loadAgencies({ preserveStatusMessage: true });
   }
 
@@ -158,9 +176,47 @@ export function AdminAgenciesPage() {
                     <dt>Owner profile</dt>
                     <dd>{agency.owner_profile_id || "Not linked"}</dd>
                   </div>
+                  {agency.reviewed_at ? (
+                    <div>
+                      <dt>Reviewed</dt>
+                      <dd>{formatReviewDate(agency.reviewed_at)}</dd>
+                    </div>
+                  ) : null}
+                  {agency.reviewed_by_profile_id ? (
+                    <div>
+                      <dt>Reviewed by</dt>
+                      <dd>{agency.reviewed_by_profile_id}</dd>
+                    </div>
+                  ) : null}
+                  {agency.previous_verification_status ? (
+                    <div>
+                      <dt>Previous status</dt>
+                      <dd>{formatStatus(agency.previous_verification_status)}</dd>
+                    </div>
+                  ) : null}
+                  {agency.review_notes ? (
+                    <div className="agency-review-notes">
+                      <dt>Review notes</dt>
+                      <dd>{agency.review_notes}</dd>
+                    </div>
+                  ) : null}
                 </dl>
               </div>
               <div className="admin-actions">
+                <label className="review-notes-field">
+                  Review notes
+                  <textarea
+                    name={`reviewNotes-${agency.id}`}
+                    placeholder="Required for more info or rejection"
+                    value={reviewNotesByAgencyId[agency.id] || ""}
+                    onChange={(event) =>
+                      setReviewNotesByAgencyId((current) => ({
+                        ...current,
+                        [agency.id]: event.target.value,
+                      }))
+                    }
+                  />
+                </label>
                 <button
                   className="button secondary"
                   type="button"

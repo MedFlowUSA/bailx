@@ -562,6 +562,10 @@ h2 {
   padding-top: 1rem;
 }
 
+.agency-review-notes {
+  grid-column: 1 / -1;
+}
+
 .agency-detail-grid {
   display: grid;
   gap: 0.75rem;
@@ -583,6 +587,14 @@ h2 {
 .agency-detail-grid dd {
   margin: 0;
   color: #122033;
+}
+
+.review-notes-field {
+  min-width: min(18rem, 100%);
+}
+
+.review-notes-field textarea {
+  min-height: 5.5rem;
 }
 
 .lead-list {

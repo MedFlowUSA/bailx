@@ -21,6 +21,10 @@ export type Agency = {
   languages: string[];
   collateral_accepted: string[];
   verification_status: "pending" | "approved" | "rejected" | "more_info_requested";
+  previous_verification_status?: "pending" | "approved" | "rejected" | "more_info_requested" | null;
+  reviewed_by_profile_id?: string | null;
+  reviewed_at?: string | null;
+  review_notes?: string | null;
   subscription_tier?: string;
   created_at: string;
   updated_at: string;

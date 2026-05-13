@@ -193,6 +193,17 @@ competing offer decline, and request status update happen atomically.
 7. Test bail request filters for all, submitted, offers received, provider
    selected, and closed.
 
+## Admin Agency Review Audit QA
+
+1. Sign in as admin.
+2. Approve an agency from `/admin/agencies`.
+3. Confirm the success message stays visible.
+4. Confirm the `agencies` table has `reviewed_at`,
+   `reviewed_by_profile_id`, `previous_verification_status`, and
+   `review_notes`.
+5. Test Request More Info with notes.
+6. Test Reject with notes.
+
 ## Status Timeline Test
 
 1. Submit a request from `/get-help-now`.
