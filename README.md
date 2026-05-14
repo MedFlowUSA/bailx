@@ -54,6 +54,28 @@ keys in React and does not weaken production RLS.
 19. Confirm normal auth route protection returns.
 20. Run `npm run build`.
 
+## Demo Flow Polish QA
+
+1. Set `VITE_BAILX_DEMO_MODE=true`.
+2. Open `/demo`.
+3. Confirm four role cards display.
+4. Enter Consumer Demo.
+5. Confirm the role changes and `/consumer/dashboard` loads.
+6. Open Demo Guide from the banner.
+7. Enter Agency Demo.
+8. Confirm `/agency/dashboard` loads.
+9. Enter Admin Demo.
+10. Confirm `/admin/dashboard` loads.
+11. Enter Attorney Demo.
+12. Confirm `/attorney/dashboard` loads.
+13. Reset Demo Data.
+14. Confirm local demo changes clear.
+15. Reset Demo Session.
+16. Confirm the role resets.
+17. Set `VITE_BAILX_DEMO_MODE=false`.
+18. Confirm `/demo` does not expose usable demo controls.
+19. Run `npm run build`.
+
 ## Trust, Compliance, and Operational Superiority QA
 
 1. Visit `/privacy`, `/terms`, `/compliance`, and `/consumer-disclosures`.

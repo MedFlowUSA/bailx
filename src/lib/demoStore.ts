@@ -22,6 +22,7 @@ export type DemoState = {
 };
 
 const demoStateKey = "bailx.demo.state";
+const demoLastResetKey = "bailx.demo.lastResetAt";
 export const demoStateChangedEvent = "bailx-demo-state-changed";
 
 const emptyState: DemoState = {
@@ -88,8 +89,34 @@ export function updateDemoState(partial: Partial<DemoState>) {
 export function resetDemoState() {
   if (canUseStorage()) {
     window.localStorage.removeItem(demoStateKey);
+    window.localStorage.setItem(demoLastResetKey, new Date().toISOString());
     emitDemoStateChanged();
   }
+}
+
+export function getDemoLastResetAt() {
+  if (!canUseStorage()) {
+    return null;
+  }
+
+  return window.localStorage.getItem(demoLastResetKey);
+}
+
+export function getDemoDataStatus() {
+  const state = getDemoState();
+  const localChangeCount =
+    Object.keys(state.requestUpdates).length +
+    Object.keys(state.agencyUpdates).length +
+    Object.keys(state.documentUpdates).length +
+    state.offers.length +
+    state.offerNotes.length +
+    state.requestTasks.length +
+    state.adminNotes.length +
+    Object.keys(state.notificationUpdates).length;
+
+  return localChangeCount > 0
+    ? `${localChangeCount} local demo change${localChangeCount === 1 ? "" : "s"}`
+    : "Seeded demo data";
 }
 
 export function updateDemoRequest(id: string, updates: Partial<BailRequest>) {

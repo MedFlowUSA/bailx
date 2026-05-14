@@ -11,6 +11,7 @@ import {
 import { getRequestStatusLabel } from "../lib/requestStatus";
 import { getRecentConsumerBailRequests } from "../lib/consumerRequests";
 import { getCustomerRequestProgress } from "../lib/customerProgress";
+import { isDemoModeEnabled } from "../lib/demoMode";
 import type { AgencyOffer, BailRequest } from "../types";
 
 const activeStatuses = new Set(["submitted", "providers_notified", "offers_received", "provider_selected"]);
@@ -119,6 +120,13 @@ export function ConsumerDashboardPage() {
           </button>
         </div>
       </div>
+
+      {isDemoModeEnabled() ? (
+        <article className="notice-card compliance-notice" role="note">
+          Demo suggestion: open a request with offers, compare providers, then switch to agency or
+          admin from the demo banner.
+        </article>
+      ) : null}
 
       {!isLoading && bailRequests.length === 0 ? (
         <section className="dashboard-grid">

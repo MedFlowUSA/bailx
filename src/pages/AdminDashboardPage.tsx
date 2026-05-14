@@ -11,6 +11,7 @@ import {
   type AdminSelectedOffer,
 } from "../lib/adminDashboard";
 import { getRecentAdminNotes } from "../lib/adminNotes";
+import { isDemoModeEnabled } from "../lib/demoMode";
 import { getRecentNotificationEvents } from "../lib/notificationEvents";
 import { getRequestStatusLabel } from "../lib/requestStatus";
 import type { AdminNote, Agency, BailRequest, NotificationEvent } from "../types";
@@ -137,6 +138,13 @@ export function AdminDashboardPage() {
           Refresh
         </button>
       </div>
+
+      {isDemoModeEnabled() ? (
+        <article className="notice-card compliance-notice" role="note">
+          Demo suggestion: audit a bail request, review an agency file, and inspect notification
+          events.
+        </article>
+      ) : null}
 
       {isLoading ? <p>Loading admin operations...</p> : null}
       {statusMessage ? <p className="form-message success">{statusMessage}</p> : null}

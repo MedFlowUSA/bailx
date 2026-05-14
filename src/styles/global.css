@@ -958,11 +958,12 @@ h2 {
   gap: 1rem;
   align-items: center;
   justify-content: space-between;
-  padding: 0.85rem clamp(1rem, 3vw, 2rem);
+  padding: 0.65rem clamp(1rem, 3vw, 2rem);
   border-top: 1px solid #f59e0b;
   border-bottom: 1px solid #f59e0b;
   background: #fff7ed;
   color: #7c2d12;
+  font-size: 0.92rem;
 }
 
 .demo-mode-banner > div:first-child {
@@ -974,6 +975,10 @@ h2 {
   color: #9a3412;
   text-transform: uppercase;
   letter-spacing: 0;
+}
+
+.demo-mode-banner small {
+  color: #7c2d12;
 }
 
 .demo-mode-controls {
@@ -997,6 +1002,26 @@ h2 {
 .demo-production-warning {
   font-weight: 700;
   color: #b91c1c;
+}
+
+.demo-story-list {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.demo-story-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  border: 1px solid #e7edf4;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #f8fbff;
+}
+
+.demo-story-item h3 {
+  margin-bottom: 0.5rem;
 }
 
 .admin-compact-row {
@@ -1302,6 +1327,17 @@ h2 {
   .admin-compact-row {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .demo-mode-banner,
+  .demo-story-item {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+
+  .demo-mode-controls {
+    justify-content: flex-start;
   }
 
   .button {

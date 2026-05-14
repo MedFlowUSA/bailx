@@ -61,13 +61,19 @@ export function DemoModeBanner() {
     <aside className="demo-mode-banner" aria-label="Demo mode controls">
       <div>
         <strong>Demo Mode Active</strong>
-        <span>Current role: {role}</span>
-        <span>Demo data only. No real requests, providers, SMS, email, payment, crypto, or legal service is triggered.</span>
+        <span>Role: {roleOptions.find((item) => item.role === role)?.label || role}</span>
+        <small>
+          Demo flag enabled. Seeded data only; no real requests, providers, SMS, email, payment,
+          crypto, or legal service is triggered.
+        </small>
         {import.meta.env.PROD ? (
           <span className="demo-production-warning">Demo Mode is enabled in a production build.</span>
         ) : null}
       </div>
       <div className="demo-mode-controls">
+        <button className="button secondary" type="button" onClick={() => navigate("/demo")}>
+          Open Demo Guide
+        </button>
         <select
           aria-label="Switch demo role"
           value={role}

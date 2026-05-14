@@ -14,6 +14,7 @@ import {
   countAgencyDocumentsByStatus,
   getAgencyVerificationProgress,
 } from "../lib/agencyProgress";
+import { isDemoModeEnabled } from "../lib/demoMode";
 import type { Agency, AgencyDocument, AgencyOffer } from "../types";
 
 function formatTierBadge(value?: string | null): "Starter" | "Pro" | "Priority" {
@@ -181,6 +182,13 @@ export function AgencyDashboardPage() {
           Refresh
         </button>
       </div>
+
+      {isDemoModeEnabled() ? (
+        <article className="notice-card compliance-notice" role="note">
+          Demo suggestion: review matched leads and marketplace offer standards, then switch to
+          customer to see how offers appear.
+        </article>
+      ) : null}
 
       {isLoading ? <p>Loading agency command center...</p> : null}
       {statusMessage ? <p className="form-message success">{statusMessage}</p> : null}

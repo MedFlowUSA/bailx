@@ -1,4 +1,5 @@
 import { getDemoAttorneyData } from "../lib/demoData";
+import { isDemoModeEnabled } from "../lib/demoMode";
 
 export function AttorneyDashboardPage() {
   const { profile, ad, complianceStatus } = getDemoAttorneyData();
@@ -20,6 +21,13 @@ export function AttorneyDashboardPage() {
         Attorney advertising features are not active yet. BailX does not provide legal advice or
         attorney-client matching in this demo.
       </div>
+
+      {isDemoModeEnabled() ? (
+        <article className="notice-card compliance-notice" role="note">
+          Demo suggestion: this placeholder shows the future legal advertising layer after bail
+          request intake.
+        </article>
+      ) : null}
 
       <section className="dashboard-grid">
         <article className="card agency-command-card">
